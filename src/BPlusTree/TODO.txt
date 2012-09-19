@@ -1,0 +1,20 @@
+﻿
+
+Coda delle scritture data/index
+
+on write=> pick address from emtpyList, put it on reserved list, enqueue write operation
+
+Dequeue => Write async in block (and clean reserved empty slot) 
+	=> !commit = wait for writing => update root node address => flush => add "deleted" nodes addresses to the update empty slots (async) 
+
+	if commit fails => reserved slots return to empty list, truncate file to initial pointer, clean freed empty slots
+
+
+
+	Performances : 
+		- Cache LRU for reading nodes
+		- batches writes at commit
+
+
+	Multitasking (multiple readers, one writer)
+	LRU node cache

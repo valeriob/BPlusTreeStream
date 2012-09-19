@@ -4,3 +4,12 @@ obj
 
 # mstest test results
 TestResults
+*.v11.suo
+packages/
+*.mdf
+*.ldf
+*.vspx
+*.vsp
+*.psess
+_NCrunch_MessageMonitor*/
+*.ncrunchproject
