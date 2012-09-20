@@ -145,6 +145,8 @@ namespace Lokad.Cqrs.TapeStorage
             return new Page(buffer);
         }
 
+
+
         public override bool CanRead
         {
             get { return false; }

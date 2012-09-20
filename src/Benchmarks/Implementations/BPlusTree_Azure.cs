@@ -107,6 +107,76 @@ namespace Benchmarks
     }
 
 
+    public class Azure_Stream_Factory : IStream_Factory
+    {
+        CloudBlobContainer container;
+        string _container_Name = "bplustree";
 
+        string indexBlobName = "index.dat";
+        string metadataBlobName = "metadata.dat";
+        string dataBlobName = "data.dat";
+
+
+        public Azure_Stream_Factory(CloudStorageAccount account, string container_Name)
+        {
+            _container_Name = container_Name;
+
+            var blobClient = account.CreateCloudBlobClient();
+
+            container = blobClient.GetContainerReference(container_Name);
+            container.CreateIfNotExist();
+        }
+
+
+        public Stream Create_ReadOnly_Index_Stream()
+        {
+            var blob = container.GetPageBlobReference(indexBlobName);
+            blob.DeleteIfExists();
+            blob.Create(10 * 1024 * 1024);
+            var stream = new Lokad.Cqrs.TapeStorage.PageBlobReadStream(blob);
+            return stream;
+        }
+
+        public Stream Create_ReadWrite_Index_Stream()
+        {
+            var blob = container.GetPageBlobReference(indexBlobName);
+            blob.DeleteIfExists();
+            blob.Create(10 * 1024 * 1024);
+            var stream = new Lokad.Cqrs.TapeStorage.PageBlobAppendStream(blob);
+            return stream;
+        }
+
+
+
+        public Stream Create_ReadWrite_Data_Stream()
+        {
+            var blob = container.GetPageBlobReference(dataBlobName);
+            blob.DeleteIfExists();
+            blob.Create(10 * 1024 * 1024);
+            var stream = new Lokad.Cqrs.TapeStorage.PageBlobReadStream(blob);
+            return stream;
+        }
+
+
+        public Stream Create_ReadOnly_Data_Stream()
+        {
+            var blob = container.GetPageBlobReference(dataBlobName);
+            blob.DeleteIfExists();
+            blob.Create(10 * 1024 * 1024);
+            var stream = new Lokad.Cqrs.TapeStorage.PageBlobAppendStream(blob);
+            return stream;
+        }
+
+
+        public Stream Create_ReadWrite_Metadata_Stream()
+        {
+            var blob = container.GetPageBlobReference(metadataBlobName);
+            blob.DeleteIfExists();
+            blob.Create(10 * 1024 * 1024);
+            var stream = new Lokad.Cqrs.TapeStorage.PageBlobReadStream(blob);
+            return stream;
+        }
+    
+    }
 
 }

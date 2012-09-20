@@ -51,6 +51,7 @@
     <Compile Include="TapeStorage\BlobExtensions.cs" />
     <Compile Include="TapeStorage\PageBlobAppendStream.cs" />
     <Compile Include="TapeStorage\PageBlobReadStream.cs" />
+    <Compile Include="TapeStorage\PageBlobStream.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BPlusTree\BPlusTree.csproj">

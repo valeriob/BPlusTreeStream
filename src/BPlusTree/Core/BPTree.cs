@@ -26,7 +26,14 @@ namespace BPlusTree.Core
         ISerializer<T> Serializer;
         Node_Factory<T> Node_Factory;
         Cache_LRU<long, Node<T>> Cache;
+        IStream_Factory StreamFactory;
 
+        public BPlusTree(IStream_Factory stramFactory, int order, ISerializer<T> serializer)
+        {
+            Index_Stream = StreamFactory.Create_ReadWrite_Index_Stream();
+            Data_Stream = StreamFactory.Create_ReadWrite_Data_Stream();
+
+        }
         public BPlusTree(Stream metadataStream, Stream indexStream, Stream dataStream, int order, ISerializer<T> serializer)
         {
             Size = order;

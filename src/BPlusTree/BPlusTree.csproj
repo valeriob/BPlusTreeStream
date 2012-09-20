@@ -63,6 +63,7 @@
     <Compile Include="Data_Structures\Basic_Heap.cs" />
     <Compile Include="IBPTree.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Stream_Factory.cs" />
     <Compile Include="String_BPTree.cs" />
     <Compile Include="Data_Structures\AVLTree.cs" />
     <Compile Include="Data_Structures\EmptyAVLTree.cs" />
