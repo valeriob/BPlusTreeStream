@@ -11,7 +11,7 @@ namespace Benchmarks
     {
         static void Main(string[] args)
         {
-            var results = RunAll(1000, 1);
+            var results = RunAll(100000, 1);
             foreach (var result in results)
             {
                 Console.WriteLine(result.ToString());
@@ -27,8 +27,8 @@ namespace Benchmarks
             var benchmarks = new Benchmark[] 
             { 
               // new Ravendb(),
-               //new BPlusTree(),
-                new BPlusTree_Azure(),
+               new BPlusTree(),
+               // new BPlusTree_Azure(),
                //new Memory_Copy(),
               // new File_Flush_Benchmark(),
              //  new CSharpTest_BPlusTree(),

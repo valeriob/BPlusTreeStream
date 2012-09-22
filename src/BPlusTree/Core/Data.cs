@@ -17,21 +17,21 @@ namespace BPlusTree.Core
         public long Address { get; set; }
         
 
-        static int alignment = 512;
-        public byte[] To_Bytes(ISerializer<T> serializer)
+        //static int alignment = 512;
+        //public byte[] To_Bytes(ISerializer<T> serializer)
+        //{
+        //    var size = Total_Persisted_Size(serializer.Serialized_Size_For_Single_Key_In_Bytes());
+
+        //    var buffer = new byte[size];
+
+        //    Write_To_Buffer(serializer, buffer, 0);
+
+        //    return buffer;
+        //}
+
+        public void Write_To_Buffer(ISerializer<T> serializer, byte[] buffer, int startIndex, int alignment)
         {
-            var size = Total_Persisted_Size(serializer.Serialized_Size_For_Single_Key_In_Bytes());
-
-            var buffer = new byte[size];
-
-            Write_To_Buffer(serializer, buffer, 0);
-
-            return buffer;
-        }
-
-        public void Write_To_Buffer(ISerializer<T> serializer, byte[] buffer, int startIndex)
-        {
-            int size = Total_Persisted_Size(serializer.Serialized_Size_For_Single_Key_In_Bytes());
+            int size = Total_Persisted_Size(serializer.Serialized_Size_For_Single_Key_In_Bytes(), alignment);
 
             Array.Copy(BitConverter.GetBytes(size), 0, buffer, startIndex, 4);
             Array.Copy(serializer.GetBytes(Key), 0, buffer, startIndex + 4, serializer.Serialized_Size_For_Single_Key_In_Bytes());
@@ -42,22 +42,27 @@ namespace BPlusTree.Core
             Array.Copy(Payload, 0, buffer, startIndex + 32, Payload.Length);
         }
 
-        public int Total_Persisted_Size(int keySize)
+        public int Total_Persisted_Size(int keySize, int alignment)
         {
             var size = 4 + 8 + 4 + 8 + 4 + Payload.Length + keySize;
-            var rest = size % alignment;
-            if (rest != 0)
-                size = size + alignment - rest;
-
+            if (alignment > 0)
+            {
+                var rest = size % alignment;
+                if (rest != 0)
+                    size = size + alignment - rest;
+            }
             return size;
         }
 
 
 
-        static int read_ahead;
-        public static Data<T> From_Bytes(Stream stream, ISerializer<T> serializer)
+        static int read_ahead = 2;
+        public static Data<T> From_Bytes(Stream stream, ISerializer<T> serializer, int alignment)
         {
             int bufferSize = alignment * (1 + read_ahead);
+            if (alignment == 0)
+                bufferSize = 128;
+
             var buffer = new byte[bufferSize];
             stream.Read(buffer, 0, buffer.Length);
 

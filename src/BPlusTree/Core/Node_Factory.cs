@@ -13,15 +13,19 @@ namespace BPlusTree.Core
         Task builder;
         int Order;
         bool IsClustered;
-        int Clustered_Data_Size = 100;
-
+        bool IsAligned;
+        int Clustered_Data_Size;
+        public int Alignment { get; protected set; }
         ManualResetEvent _lock = new ManualResetEvent(true);
 
-        public Node_Factory(ISerializer<T> serializer, int order, bool isClustered)
+        public Node_Factory(ISerializer<T> serializer, int order, int alignment, int clusteredDataSize)
         {
             Serializer = serializer;
             Order = order;
-            IsClustered = isClustered;
+            Alignment = alignment;
+            IsClustered = clusteredDataSize > 0;
+            IsAligned = alignment > 0;
+            Clustered_Data_Size = clusteredDataSize;
             builder = Task.Factory.StartNew(Build, TaskCreationOptions.LongRunning);
         }
 
@@ -199,7 +203,7 @@ namespace BPlusTree.Core
         }
 
 
-        int alignment = 512;
+       
         public int Size_In_Bytes(int order)
         {
             int keySize = Serializer.Serialized_Size_For_Single_Key_In_Bytes();
@@ -209,9 +213,12 @@ namespace BPlusTree.Core
             if (IsClustered)
                 net_size += Clustered_Data_Size * (order + 1);
 
-            var rest = net_size % alignment;
+            if (!IsAligned)
+                return net_size;
+
+            var rest = net_size % Alignment;
             if (rest != 0)
-                return net_size + alignment - rest;
+                return net_size + Alignment - rest;
             return net_size;
         }
     }

@@ -106,7 +106,7 @@ namespace BPlusTree.Core
             // TODO Data cache ?
             Data_Stream.Seek(address, SeekOrigin.Begin);
 
-            data = Data<T>.From_Bytes(Data_Stream, Serializer);
+            data = Data<T>.From_Bytes(Data_Stream, Serializer, Node_Factory.Alignment);
             return data.Payload;
         }
 

@@ -41,25 +41,25 @@ namespace Benchmarks
             container.CreateIfNotExist();
 
             var indexBlob = container.GetPageBlobReference(indexFile);
-            //indexBlob.DeleteIfExists();
-            //indexBlob.Create(maxValue);
+            indexBlob.DeleteIfExists();
+            indexBlob.Create(maxValue);
             var indexStream = new Aligned_PageBlobStream(indexBlob);
 
 
             var metadataBlob = container.GetPageBlobReference(metadataFile);
-            //metadataBlob.DeleteIfExists();
-            //metadataBlob.Create(maxValue);
+            metadataBlob.DeleteIfExists();
+            metadataBlob.Create(maxValue);
             var metadataStream = new Aligned_PageBlobStream(metadataBlob);
 
 
             var dataBlob = container.GetPageBlobReference(dataFile);
-            //dataBlob.DeleteIfExists();
-            //dataBlob.Create(maxValue);
+            dataBlob.DeleteIfExists();
+            dataBlob.Create(maxValue);
             var dataStream = new Aligned_PageBlobStream(dataBlob);
 
             
 
-            var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, dataStream, 128, serializer);
+            var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, dataStream, 128, 0, 0 , serializer);
             tree = new String_BPlusTree<int>(appendBpTree);
         }
 
@@ -82,29 +82,29 @@ namespace Benchmarks
             string result;
 
 
-            //for (int i = 0; i < number_Of_Inserts; i += batch)
-            //{
-            //    for (var j = i; j < i + batch; j++)
-            //    {
-            //        var g = Guid.NewGuid();
-            //        tree.Put(j, "text about " + j);
-            //        //result = tree.Get(j);
-            //        //for (int k = j; k >= 0; k--)
-            //        //    result = tree.Get(k);
-            //    }
-            //    tree.Commit();
+            for (int i = 0; i < number_Of_Inserts; i += batch)
+            {
+                for (var j = i; j < i + batch; j++)
+                {
+                    var g = Guid.NewGuid();
+                    tree.Put(j, "text about " + j);
+                    //result = tree.Get(j);
+                    //for (int k = j; k >= 0; k--)
+                    //    result = tree.Get(k);
+                }
+                tree.Commit();
 
-            //    //for (int k = i + batch - 1; k >= 0; k--)
-            //    //    result = tree.Get(k);
-            //}
+                //for (int k = i + batch - 1; k >= 0; k--)
+                //    result = tree.Get(k);
+            }
 
 
             ///  Read Only
-            for (int i = 0; i < number_Of_Inserts; i++)
-            {
-                var rnd = random.Next(number_Of_Inserts - 1);
-                result = tree.Get(rnd);
-            }
+            //for (int i = 0; i < number_Of_Inserts; i++)
+            //{
+            //    var rnd = random.Next(number_Of_Inserts - 1);
+            //    result = tree.Get(rnd);
+            //}
 
             var inner = tree.BPlusTree as BPlusTree<int>;
         }

@@ -11,9 +11,9 @@ namespace Benchmarks
 {
     public class BPlusTree : Benchmark
     {
-        String_BPlusTree<string> tree;
+        String_BPlusTree<int> tree;
         Stream indexStream;
-        ISerializer<string> serializer = new String_Serializer();
+        ISerializer<int> serializer = new Int_Serializer();
 
         public BPlusTree()
         {
@@ -38,25 +38,25 @@ namespace Benchmarks
 
             var dataStream = new FileStream(dataFile, FileMode.OpenOrCreate);
 
-            var appendBpTree = new BPlusTree<string>(metadataStream, indexStream, 
-                dataStream, 3, serializer);
-            tree = new String_BPlusTree<string>(appendBpTree);
+            var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, 
+                dataStream, 128, 512, 20, serializer);
+            tree = new String_BPlusTree<int>(appendBpTree);
 
         }
 
         public override void Prepare(int count, int batch)
         {
-            return;
+            //return;
 
-            for (int i = 0; i < count; i += batch)
-            {
-                for (var j = i; j < i + batch; j++)
-                {
-                    var g = Guid.NewGuid();
-                    tree.Put(j +"", "text about " + j);
-                }
-                tree.Commit();
-            }
+            //for (int i = 0; i < count; i += batch)
+            //{
+            //    for (var j = i; j < i + batch; j++)
+            //    {
+            //        var g = Guid.NewGuid();
+            //        tree.Put(j +"", "text about " + j);
+            //    }
+            //    tree.Commit();
+            //}
         }
 
         public override void Run(int number_Of_Inserts, int batch)
@@ -107,15 +107,15 @@ namespace Benchmarks
                 for (var j = i; j < i + batch; j++)
                 {
                     var g = Guid.NewGuid();
-                    tree.Put(j + "", "text about " + j);
-                    //result = tree.Get(j+"");
-                    for (int k = j; k >= 0; k--)
-                        result = tree.Get(k + "");
+                    tree.Put(j, "text about " + j);
+                    //result = tree.Get(j);
+                    //for (int k = j; k >= 0; k--)
+                    //    result = tree.Get(k);
                 }
                 tree.Commit();
 
-                for (int k = i + batch - 1; k >= 0; k--)
-                    result = tree.Get(k + "");
+                //for (int k = i + batch - 1; k >= 0; k--)
+                //    result = tree.Get(k);
             }
 
 

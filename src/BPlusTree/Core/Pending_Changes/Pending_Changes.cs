@@ -250,14 +250,14 @@ namespace BPlusTree.Core.Pending_Changes
             int keySize = Node_Factory.Serializer.Serialized_Size_For_Single_Key_In_Bytes();
             int bufferSize = 0;
             for (int i = 0; i < Pending_Data.Count; i++)
-                bufferSize += Pending_Data[i].Total_Persisted_Size(keySize);
+                bufferSize += Pending_Data[i].Total_Persisted_Size(keySize, Node_Factory.Alignment);
 
             byte[] buffer = new byte[bufferSize];
             int offset = 0;
             for (int i = 0; i < Pending_Data.Count; i++)
             {
-                Pending_Data[i].Write_To_Buffer(Node_Factory.Serializer, buffer, offset);
-                offset += Pending_Data[i].Total_Persisted_Size(keySize);
+                Pending_Data[i].Write_To_Buffer(Node_Factory.Serializer, buffer, offset, Node_Factory.Alignment);
+                offset += Pending_Data[i].Total_Persisted_Size(keySize, Node_Factory.Alignment);
             }
 
             Pending_Data.Clear();
@@ -280,7 +280,7 @@ namespace BPlusTree.Core.Pending_Changes
         public void Append_Data(Data<T> data)
         {
             Pending_Data.Add(data);
-            _data_Pointer = data.Address + data.Total_Persisted_Size(Node_Factory.Serializer.Serialized_Size_For_Single_Key_In_Bytes());
+            _data_Pointer = data.Address + data.Total_Persisted_Size(Node_Factory.Serializer.Serialized_Size_For_Single_Key_In_Bytes(), Node_Factory.Alignment);
         }
 
         public void Append_New_Root(Node<T> root)
