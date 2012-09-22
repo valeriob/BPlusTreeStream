@@ -11,13 +11,17 @@ namespace BPlusTree.Core
     {
         public ISerializer<T> Serializer { get; protected set; }
         Task builder;
-        int Size;
+        int Order;
+        bool IsClustered;
+        int Clustered_Data_Size = 100;
+
         ManualResetEvent _lock = new ManualResetEvent(true);
 
-        public Node_Factory(ISerializer<T> serializer, int size)
+        public Node_Factory(ISerializer<T> serializer, int order, bool isClustered)
         {
             Serializer = serializer;
-            Size = size;
+            Order = order;
+            IsClustered = isClustered;
             builder = Task.Factory.StartNew(Build, TaskCreationOptions.LongRunning);
         }
 
@@ -36,7 +40,7 @@ namespace BPlusTree.Core
                 return node;
             }
 
-            return new Node<T>(this, Size, isLeaf);
+            return new Node<T>(this, Order, isLeaf, IsClustered);
         }
 
         protected void Build()
@@ -46,7 +50,7 @@ namespace BPlusTree.Core
                 _lock.WaitOne();
 
                 for (int i = 0; i < 50; i++)
-                    nodes.Enqueue(new Node<T>(this, Size, false));
+                    nodes.Enqueue(new Node<T>(this, Order, false, IsClustered));
 
                 _lock.Reset();
             }
@@ -58,9 +62,9 @@ namespace BPlusTree.Core
                 nodes.Enqueue(node);
         }
 
-        unsafe public Node<T> From_Bytes(byte[] buffer, int size)
+        unsafe public Node<T> From_Bytes(byte[] buffer, int order)
         {
-            var byteCount = Size_In_Bytes(size);
+            var byteCount = Size_In_Bytes(order);
             var keySize = Serializer.Serialized_Size_For_Single_Key_In_Bytes();
 
             int key_Num;
@@ -70,13 +74,14 @@ namespace BPlusTree.Core
                 Unsafe_Utilities.Memcpy((byte*)&key_Num, shifted, 4);
             }
 
-            var node = Create_New(buffer[4] == 1);
+            bool isLeaf = buffer[4] == 1;
+            var node = Create_New(isLeaf);
            
             node.Key_Num = key_Num;
 
-            node.Keys = Serializer.Get_Instances(buffer, 5, size); 
+            node.Keys = Serializer.Get_Instances(buffer, 5, order); 
 
-            int offset = 5 + keySize * size;
+            int offset = 5 + keySize * order;
 
             fixed (long* p_Pointers = &node.Pointers[0])
             fixed (byte* p_buff = &buffer[0])
@@ -84,6 +89,15 @@ namespace BPlusTree.Core
                 byte* shifted = p_buff + offset;
                 Unsafe_Utilities.Memcpy((byte*)p_Pointers, shifted, 8 * (key_Num + 1));
             }
+
+            if (IsClustered && node.IsLeaf)
+            {
+                offset += 8 * (node.Pointers.Length);
+
+                for (int i = 1; i < key_Num + 1; i++)
+                    node.Data[i] = Clustered_Data<T>.From_Bytes(buffer, offset + i * Clustered_Data_Size, Clustered_Data_Size);
+            }
+
             return node;
         }
 
@@ -123,12 +137,20 @@ namespace BPlusTree.Core
             int offset = startIndex + 5;
             Serializer.To_Buffer(node.Keys, key_Num, buffer, offset);
 
-            offset = startIndex + 5 + keySize * node.Keys.Length;
+            offset += keySize * node.Keys.Length;
             fixed (long* p_Pointers = &node.Pointers[0])
             fixed (byte* p_buff = &buffer[0])
             {
                 byte* shifted = p_buff + offset;
                 Unsafe_Utilities.Memcpy(shifted, (byte*)p_Pointers, 8 * (key_Num + 1));
+            }
+
+            if (IsClustered && node.IsLeaf)
+            {
+                offset += 8 * (node.Pointers.Length);
+
+                for (int i = 1; i < key_Num + 1; i++)
+                    node.Data[i].Write_To_Buffer(buffer, offset + i * Clustered_Data_Size);
             }
         }
 
@@ -159,6 +181,7 @@ namespace BPlusTree.Core
             Array.Copy(source.Pointers, node.Pointers, source.Pointers.Length);
             Array.Copy(source.Versions, node.Versions, source.Versions.Length);
             Array.Copy(source.Children, node.Children, source.Children.Length);
+            Array.Copy(source.Data, node.Data, source.Data.Length);
             node.Parent = source.Parent;
             node.Address = source.Address;
             return node;
@@ -170,6 +193,7 @@ namespace BPlusTree.Core
             Array.Copy(source.Keys, node.Keys, source.Keys.Length);
             Array.Copy(source.Pointers, node.Pointers, source.Pointers.Length);
             Array.Copy(source.Versions, node.Versions, source.Versions.Length);
+            Array.Copy(source.Data, node.Data, source.Data.Length);
             node.Address = source.Address;
             return node;
         }
@@ -178,7 +202,13 @@ namespace BPlusTree.Core
         int alignment = 512;
         public int Size_In_Bytes(int order)
         {
-            int net_size =  4 + 1 + Serializer.Serialized_Size_For_Single_Key_In_Bytes() * order + 8 * (order + 1);
+            int keySize = Serializer.Serialized_Size_For_Single_Key_In_Bytes();
+
+            int net_size = 4 + 1 + keySize * order + 8 * (order + 1);
+
+            if (IsClustered)
+                net_size += Clustered_Data_Size * (order + 1);
+
             var rest = net_size % alignment;
             if (rest != 0)
                 return net_size + alignment - rest;

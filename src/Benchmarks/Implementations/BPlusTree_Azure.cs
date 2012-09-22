@@ -58,16 +58,7 @@ namespace Benchmarks
             var dataStream = new Aligned_PageBlobStream(dataBlob);
 
             
-            /*var testBuf= new byte[512];
-            testBuf[0] = 255;
-            testBuf[127] = 255;
-            testBuf[511] = 255;
-            dataStream.Seek(0, SeekOrigin.Begin);
-            dataStream.Write(testBuf, 0, 512);
-            dataStream.Seek(0, SeekOrigin.Begin);
-            var returned = new byte[512];
-            dataStream.Read(returned, 0, 512);
-            */
+
             var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, dataStream, 128, serializer);
             tree = new String_BPlusTree<int>(appendBpTree);
         }
@@ -96,7 +87,7 @@ namespace Benchmarks
             //    for (var j = i; j < i + batch; j++)
             //    {
             //        var g = Guid.NewGuid();
-            //        tree.Put(j , "text about " + j);
+            //        tree.Put(j, "text about " + j);
             //        //result = tree.Get(j);
             //        //for (int k = j; k >= 0; k--)
             //        //    result = tree.Get(k);
@@ -109,8 +100,6 @@ namespace Benchmarks
 
 
             ///  Read Only
-            
-           
             for (int i = 0; i < number_Of_Inserts; i++)
             {
                 var rnd = random.Next(number_Of_Inserts - 1);

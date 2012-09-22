@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -12,11 +13,13 @@ namespace BPlusTree.Core
     public class Node<T> : IDisposable where T: IComparable<T>, IEquatable<T>
     {
         public bool IsLeaf { get; set; }
+        public bool IsClustered { get; set; }
 
         public T[] Keys { get; set; }
         public long[] Pointers { get; set; }
         public int Key_Num { get; set; }
         public int[] Versions { get; set; }
+        public Clustered_Data<T>[] Data { get; set; }
 
         public Node<T> Parent { get; set; }
         public long Address { get; set; }
@@ -32,6 +35,7 @@ namespace BPlusTree.Core
             Array.Clear(Pointers, 0, Pointers.Length);
             Array.Clear(Versions, 0, Versions.Length);
             Array.Clear(Children, 0, Children.Length);
+            Array.Clear(Data, 0, Data.Length);
             Address = 0;
             Parent = null;
             IsLeaf = false;
@@ -40,17 +44,19 @@ namespace BPlusTree.Core
             GC.SuppressFinalize(this);
         }
 
-        public Node(Node_Factory<T> factory, int size, bool isLeaf) 
+        public Node(Node_Factory<T> factory, int order, bool isLeaf, bool isClustered) 
         {
             _Factory = factory;
             IsLeaf = isLeaf;
-            Pointers = new long[size + 1];
-            Keys = new T[size];
-            Versions = new int[size];
-            Children = new Node<T>[size + 1];
+            IsClustered = isClustered;
+            Pointers = new long[order + 1];
+            Keys = new T[order];
+            Versions = new int[order];
+            Children = new Node<T>[order + 1];
             Is_Volatile = true;
-        }
 
+            Data = new Clustered_Data<T>[order + 1];
+        }
 
         public void Insert_Key(T key, long address, Node<T> child)
         {
@@ -68,11 +74,13 @@ namespace BPlusTree.Core
             {
                 Pointers[i] = Pointers[i - 1];
                 Children[i] = Children[i - 1];
+                Data[i] = Data[i - 1];
             }
 
             Keys[x] = key;
             Pointers[x + 1] = address;
             Children[x + 1] = child;
+            
             Key_Num++;
 
             if (child != null)
@@ -113,6 +121,7 @@ namespace BPlusTree.Core
                 node_Right.Keys[i] = node_Left.Keys[i + (size / 2 + 1)];
                 node_Right.Pointers[i] = node_Left.Pointers[i + (size / 2 + 1)];
                 node_Right.Children[i] = node_Left.Children[i + (size / 2 + 1)];
+                node_Right.Data[i] = node_Left.Data[i + (size / 2 + 1)];
                
                 if (node_Right.Children[i] != null)
                     node_Right.Children[i].Parent = node_Right;
@@ -120,6 +129,7 @@ namespace BPlusTree.Core
 
             node_Right.Pointers[node_Right.Key_Num] = node_Left.Pointers[size];
             node_Right.Children[node_Right.Key_Num] = node_Left.Children[size];
+            node_Right.Data[node_Right.Key_Num] = node_Left.Data[size];
             
             if (node_Right.Children[node_Right.Key_Num] != null)
                 node_Right.Children[node_Right.Key_Num].Parent = node_Right;
@@ -130,6 +140,7 @@ namespace BPlusTree.Core
                 node_Left.Key_Num++;
                 node_Right.Pointers[0] = node_Left.Pointers[0];
                 node_Right.Children[0] = node_Left.Children[0];
+                node_Right.Data[0] = node_Left.Data[0];
 
                 node_Left.Pointers[0] = node_Right.Address;  //TODO double linked list
                 mid_Key = node_Left.Keys[size / 2 + 1];
@@ -140,13 +151,30 @@ namespace BPlusTree.Core
 
 
 
+        public void Insert_Clustered_Data(Clustered_Data<T> data, T key)
+        {
+            var index = Array.BinarySearch(Keys, 0, Key_Num, key);
+
+            Data[index + 1] = data;
+        }
         public long Get_Data_Address(T key)
         {
+            var index = Array.BinarySearch(Keys, 0, Key_Num, key);
+
             for (int i = 0; i < Keys.Length; i++)
                 if (Keys[i].Equals(key))
-                    return Pointers[i+1];
-
+                {
+                    Debug.Assert(index == i);
+                    return Pointers[i + 1];
+                }
             throw new Exception("Key " + key + " not found !");
+        }
+        public Clustered_Data<T> Get_Clustered_Data(T key)
+        {
+            var index = Array.BinarySearch(Keys, 0, Key_Num, key);
+
+            return Data[index + 1];
+
         }
 
         public bool IsValid
@@ -207,6 +235,7 @@ namespace BPlusTree.Core
             }
             return true;
         }
+
     }
 
     public struct Node_Split_Result<T> where T:IComparable<T>, IEquatable<T>

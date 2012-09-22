@@ -48,6 +48,7 @@ namespace BPlusTree.Core
              long address = parent.Pointers[key_Index];
              
              var node = Cache.Get(address);
+             //var node = Read_Node(address);
              if (node == null)
              {
                  node = Read_Node(address);
@@ -86,19 +87,10 @@ namespace BPlusTree.Core
                 Version = version, 
                 Payload= value, 
                 Timestamp = DateTime.Now, 
-                //Parent = leaf, 
                 Address = address
             };
 
             Pending_Changes.Append_Data(data);
-
-            //var address = Data_Pointer();
-            //Data_Stream.Seek(address, SeekOrigin.Begin);
-
-            //var bytes = data.To_Bytes(Serializer);
-            //Data_Stream.Write(bytes, 0, bytes.Length);
-
-            //_data_Pointer += bytes.Length;
         }
 
         protected byte[] Read_Data(long address)
@@ -110,6 +102,8 @@ namespace BPlusTree.Core
                 if(data!= null)
                     return data.Payload;
             }
+
+            // TODO Data cache ?
             Data_Stream.Seek(address, SeekOrigin.Begin);
 
             data = Data<T>.From_Bytes(Data_Stream, Serializer);

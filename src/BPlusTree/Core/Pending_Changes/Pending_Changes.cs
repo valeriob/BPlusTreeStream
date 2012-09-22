@@ -242,6 +242,9 @@ namespace BPlusTree.Core.Pending_Changes
 
         protected void Commit_Data(Stream stream)
         {
+            if (Pending_Data.Count == 0)
+                return;
+
             long initial_Address = Pending_Data[0].Address;
 
             int keySize = Node_Factory.Serializer.Serialized_Size_For_Single_Key_In_Bytes();

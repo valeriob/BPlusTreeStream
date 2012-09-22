@@ -19,6 +19,7 @@ namespace BPlusTree.Core
         protected Stream Metadata_Stream { get; set; }
         
         protected int Size { get; set; }
+        public bool IsClustered { get; set; }
 
         public Dictionary<long, Node<T>> Cached_Nodes { get; set; }
 
@@ -37,8 +38,9 @@ namespace BPlusTree.Core
         }
         public BPlusTree(Stream metadataStream, Stream indexStream, Stream dataStream, int order, ISerializer<T> serializer)
         {
+            IsClustered = true;
             Size = order;
-            Node_Factory = new Node_Factory<T>(serializer, Size);
+            Node_Factory = new Node_Factory<T>(serializer, Size, IsClustered);
             Block_Size = Node_Factory.Size_In_Bytes(Size);
             Pending_Changes = new Pending_Changes<T>(Block_Size, _index_Pointer, _data_Pointer, Node_Factory);
 
@@ -72,9 +74,11 @@ namespace BPlusTree.Core
             writes++;
             Metadata_Stream.Seek(0, SeekOrigin.Begin);
             var buffer = new byte[512];
-            Metadata.Data_Length = Pending_Changes.Get_Current_Data_Pointer();
-            Metadata.Index_Length = Pending_Changes.Get_Index_Pointer();
+            Metadata.DataStream_Length = Pending_Changes.Get_Current_Data_Pointer();
+            Metadata.IndexStream_Length = Pending_Changes.Get_Index_Pointer();
             Metadata.Root_Address = newRoot.Address;
+            Metadata.IsClustered = IsClustered;
+
             Metadata.To_Bytes_In_Buffer(buffer, 0);
             Metadata_Stream.Write(buffer, 0, buffer.Length);
             Metadata_Stream.Flush();
@@ -109,14 +113,15 @@ namespace BPlusTree.Core
 
                 var metadata = Metadata.From_Bytes(buffer);
 
-                _data_Pointer = metadata.Data_Length;
-                _index_Pointer = metadata.Index_Length;
-
                 Root = Read_Root(metadata.Root_Address);
                 if (Root.IsValid)
                 {
                     Size = metadata.Order;
-                    Node_Factory = new Node_Factory<T>(Serializer, Size);
+                    _data_Pointer = metadata.DataStream_Length;
+                    _index_Pointer = metadata.IndexStream_Length;
+                    IsClustered = metadata.IsClustered;
+
+                    Node_Factory = new Node_Factory<T>(Serializer, Size, IsClustered);
                     Block_Size = Node_Factory.Size_In_Bytes(Size);
                     Pending_Changes = new Pending_Changes<T>(Block_Size, _index_Pointer, _data_Pointer, Node_Factory);
                     Metadata = metadata;
@@ -135,38 +140,47 @@ namespace BPlusTree.Core
         public byte[] Get(T key)
         {
             var leaf = Find_Leaf_Node(key);
-            long address = leaf.Get_Data_Address(key);
 
-            var data = Read_Data(address);
-            return data;
+            if (!IsClustered)
+            {
+                long address = leaf.Get_Data_Address(key);
+
+                var data = Read_Data(address);
+                return data;
+            }
+            else
+            {
+                var data = leaf.Get_Clustered_Data(key);
+                return data.Payload;
+            }
         }
 
         public void Put(T key, byte[] value)
         {
             var leaf = Find_Leaf_Node(key);
 
-           // var data_Address = Data_Pointer();
-            var data_Address = Pending_Changes.Get_Current_Data_Pointer();
-            Write_Data(leaf, value, key, 1, data_Address);
-
             Node<T> newRoot = null;
-            for(int i=0; i< leaf.Key_Num; i++)
+            for (int i = 0; i < leaf.Key_Num; i++)
                 if (key.Equals(leaf.Keys[i]))
                 {
+                    // TODO
                     return;
-                    //var newLeaf = Node_Factory.Create_New_One_Like_This(leaf);
-                    //newLeaf.Versions[i]++;
-                    //newLeaf.Pointers[i] = data_Address;
-
-                    //Write_Data(value, key, newLeaf.Versions[i]); 
-
-                    ////newRoot = Clone_Anchestors_Of(newLeaf);
-
-                    //Pending_Changes.Append_New_Root(newRoot);
-                    //return;
                 }
 
-            newRoot = Insert_in_node(leaf, key, data_Address);
+            if (!IsClustered)
+            {
+                var data_Address = Pending_Changes.Get_Current_Data_Pointer();
+                Write_Data(leaf, value, key, 1, data_Address);
+                newRoot = Insert_in_node(leaf, key, data_Address);
+            }
+            else
+            {
+                newRoot = Insert_in_node(leaf, key, 0);
+
+                leaf = Find_Leaf_Node(key, newRoot);
+                var data = new Clustered_Data<T>(1, DateTime.Now, value);
+                leaf.Insert_Clustered_Data(data, key);
+            }
 
             Pending_Changes.Append_New_Root(newRoot);
         }
