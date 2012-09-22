@@ -1,6 +1,7 @@
 ﻿using BPlusTree;
 using BPlusTree.Core;
 using BPlusTree.Core.Serializers;
+using BPlustTree.Azure.TapeStorage;
 using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.StorageClient;
 using System;
@@ -15,6 +16,7 @@ namespace Benchmarks
     {
         String_BPlusTree<int> tree;
         ISerializer<int> serializer = new Int_Serializer();
+        Random random = new Random(DateTime.Now.Millisecond);
 
         public BPlusTree_Azure()
         {
@@ -23,12 +25,14 @@ namespace Benchmarks
             var metadataFile = "metadata.dat";
             var dataFile = "data.dat";
 
-            if (File.Exists(indexFile))
-                File.Delete(indexFile);
-            if (File.Exists(metadataFile))
-                File.Delete(metadataFile);
-            if (File.Exists(dataFile))
-                File.Delete(dataFile);
+            //if (File.Exists(indexFile))
+            //    File.Delete(indexFile);
+            //if (File.Exists(metadataFile))
+            //    File.Delete(metadataFile);
+            //if (File.Exists(dataFile))
+            //    File.Delete(dataFile);
+
+            long maxValue = uint.MaxValue - uint.MaxValue % 512;
 
             var account = CloudStorageAccount.DevelopmentStorageAccount;
             var blobClient =  account.CreateCloudBlobClient();
@@ -37,23 +41,33 @@ namespace Benchmarks
             container.CreateIfNotExist();
 
             var indexBlob = container.GetPageBlobReference(indexFile);
-            indexBlob.DeleteIfExists();
-            indexBlob.Create(10 * 1024 * 1024);
-            var indexStream = new Lokad.Cqrs.TapeStorage.PageBlobAppendStream(indexBlob);
+            //indexBlob.DeleteIfExists();
+            //indexBlob.Create(maxValue);
+            var indexStream = new Aligned_PageBlobStream(indexBlob);
 
 
-            var metadataBlob = container.GetPageBlobReference(indexFile);
-            metadataBlob.DeleteIfExists();
-            metadataBlob.Create(1024);
-            var metadataStream = new Lokad.Cqrs.TapeStorage.PageBlobAppendStream(metadataBlob);
+            var metadataBlob = container.GetPageBlobReference(metadataFile);
+            //metadataBlob.DeleteIfExists();
+            //metadataBlob.Create(maxValue);
+            var metadataStream = new Aligned_PageBlobStream(metadataBlob);
 
 
-            var dataBlob = container.GetPageBlobReference(indexFile);
-            dataBlob.DeleteIfExists();
-            dataBlob.Create(1024);
-            var dataStream = new Lokad.Cqrs.TapeStorage.PageBlobAppendStream(dataBlob);
+            var dataBlob = container.GetPageBlobReference(dataFile);
+            //dataBlob.DeleteIfExists();
+            //dataBlob.Create(maxValue);
+            var dataStream = new Aligned_PageBlobStream(dataBlob);
 
-
+            
+            /*var testBuf= new byte[512];
+            testBuf[0] = 255;
+            testBuf[127] = 255;
+            testBuf[511] = 255;
+            dataStream.Seek(0, SeekOrigin.Begin);
+            dataStream.Write(testBuf, 0, 512);
+            dataStream.Seek(0, SeekOrigin.Begin);
+            var returned = new byte[512];
+            dataStream.Read(returned, 0, 512);
+            */
             var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, dataStream, 128, serializer);
             tree = new String_BPlusTree<int>(appendBpTree);
         }
@@ -61,12 +75,11 @@ namespace Benchmarks
         public override void Prepare(int count, int batch)
         {
             return;
-
             for (int i = 0; i < count; i += batch)
             {
                 for (var j = i; j < i + batch; j++)
                 {
-                    var g = Guid.NewGuid();
+                   // var g = Guid.NewGuid();
                     tree.Put(j , "text about " + j);
                 }
                 tree.Commit();
@@ -78,28 +91,31 @@ namespace Benchmarks
             string result;
 
 
-            for (int i = 0; i < number_Of_Inserts; i += batch)
-            {
-                for (var j = i; j < i + batch; j++)
-                {
-                    var g = Guid.NewGuid();
-                    tree.Put(j , "text about " + j);
-                    //result = tree.Get(j);
-                    //for (int k = j; k >= 0; k--)
-                    //    result = tree.Get(k +"");
-                }
-                tree.Commit();
+            //for (int i = 0; i < number_Of_Inserts; i += batch)
+            //{
+            //    for (var j = i; j < i + batch; j++)
+            //    {
+            //        var g = Guid.NewGuid();
+            //        tree.Put(j , "text about " + j);
+            //        //result = tree.Get(j);
+            //        //for (int k = j; k >= 0; k--)
+            //        //    result = tree.Get(k);
+            //    }
+            //    tree.Commit();
 
-                //for (int k = i + batch - 1; k >= 0; k--)
-                //    result = tree.Get(k +"");
-            }
+            //    //for (int k = i + batch - 1; k >= 0; k--)
+            //    //    result = tree.Get(k);
+            //}
 
 
             ///  Read Only
-            //for (int i = 0; i < number_Of_Inserts; i++)
-            //{
-            //    result = tree.Get(i);
-            //}
+            
+           
+            for (int i = 0; i < number_Of_Inserts; i++)
+            {
+                var rnd = random.Next(number_Of_Inserts - 1);
+                result = tree.Get(rnd);
+            }
 
             var inner = tree.BPlusTree as BPlusTree<int>;
         }
@@ -115,7 +131,7 @@ namespace Benchmarks
         string indexBlobName = "index.dat";
         string metadataBlobName = "metadata.dat";
         string dataBlobName = "data.dat";
-
+        uint maxValue = uint.MaxValue - uint.MaxValue % 512;
 
         public Azure_Stream_Factory(CloudStorageAccount account, string container_Name)
         {
@@ -132,7 +148,7 @@ namespace Benchmarks
         {
             var blob = container.GetPageBlobReference(indexBlobName);
             blob.DeleteIfExists();
-            blob.Create(10 * 1024 * 1024);
+            blob.Create(maxValue);
             var stream = new Lokad.Cqrs.TapeStorage.PageBlobReadStream(blob);
             return stream;
         }
@@ -141,7 +157,7 @@ namespace Benchmarks
         {
             var blob = container.GetPageBlobReference(indexBlobName);
             blob.DeleteIfExists();
-            blob.Create(10 * 1024 * 1024);
+            blob.Create(maxValue);
             var stream = new Lokad.Cqrs.TapeStorage.PageBlobAppendStream(blob);
             return stream;
         }
@@ -152,7 +168,7 @@ namespace Benchmarks
         {
             var blob = container.GetPageBlobReference(dataBlobName);
             blob.DeleteIfExists();
-            blob.Create(10 * 1024 * 1024);
+            blob.Create(maxValue);
             var stream = new Lokad.Cqrs.TapeStorage.PageBlobReadStream(blob);
             return stream;
         }
@@ -162,7 +178,7 @@ namespace Benchmarks
         {
             var blob = container.GetPageBlobReference(dataBlobName);
             blob.DeleteIfExists();
-            blob.Create(10 * 1024 * 1024);
+            blob.Create(maxValue);
             var stream = new Lokad.Cqrs.TapeStorage.PageBlobAppendStream(blob);
             return stream;
         }
@@ -172,7 +188,7 @@ namespace Benchmarks
         {
             var blob = container.GetPageBlobReference(metadataBlobName);
             blob.DeleteIfExists();
-            blob.Create(10 * 1024 * 1024);
+            blob.Create(maxValue);
             var stream = new Lokad.Cqrs.TapeStorage.PageBlobReadStream(blob);
             return stream;
         }

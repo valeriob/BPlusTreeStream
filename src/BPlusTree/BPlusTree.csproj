@@ -47,6 +47,7 @@
     <Compile Include="Core\Cache_LRU.cs" />
     <Compile Include="Core\Data.cs" />
     <Compile Include="Core\ISerializable.cs" />
+    <Compile Include="Core\Metadata.cs" />
     <Compile Include="Core\Node.cs" />
     <Compile Include="Core\Node_Factory.cs" />
     <Compile Include="Core\Pending_Changes\Block.cs" />

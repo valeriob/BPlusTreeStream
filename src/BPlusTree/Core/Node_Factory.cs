@@ -9,7 +9,7 @@ namespace BPlusTree.Core
 {
     public class Node_Factory<T> where T : IComparable<T>, IEquatable<T> // TODO DISPOSE TASK
     {
-        ISerializer<T> Serializer;
+        public ISerializer<T> Serializer { get; protected set; }
         Task builder;
         int Size;
         ManualResetEvent _lock = new ManualResetEvent(true);

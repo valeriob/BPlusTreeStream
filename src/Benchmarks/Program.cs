@@ -11,7 +11,7 @@ namespace Benchmarks
     {
         static void Main(string[] args)
         {
-            var results = RunAll(1000, 10);
+            var results = RunAll(1000, 100);
             foreach (var result in results)
             {
                 Console.WriteLine(result.ToString());
@@ -40,6 +40,8 @@ namespace Benchmarks
 
             foreach (var b in benchmarks)
             {
+                b.Prepare(count, batch.GetValueOrDefault(1) );
+
                 var result = new Result { Name = b.GetType().Name, Start = DateTime.Now, Count = count, Batch = batch };
                 b.Run(count, batch.GetValueOrDefault(1));
                 result.Stop = DateTime.Now;

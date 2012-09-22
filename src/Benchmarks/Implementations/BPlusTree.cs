@@ -108,7 +108,7 @@ namespace Benchmarks
                 {
                     var g = Guid.NewGuid();
                     tree.Put(j + "", "text about " + j);
-                    result = tree.Get(j+"");
+                    //result = tree.Get(j+"");
                     //for (int k = j; k >= 0; k--)
                     //    result = tree.Get(k +"");
                 }

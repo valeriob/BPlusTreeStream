@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace BPlusTree.Core.Pending_Changes
 {
@@ -7,7 +8,13 @@ namespace BPlusTree.Core.Pending_Changes
     {
         void Append_New_Root(Node<T> root);
         void Append_Node(Node<T> node);
-        Node<T> Commit(System.IO.Stream indexStream);
+
+        void Append_Data(Data<T> data);
+        long Get_Current_Data_Pointer();
+        IEnumerable<Data<T>> Get_Pending_Data();
+
+        Node<T> Commit(Stream indexStream, Stream dataStream);
+
         void Free_Address(long address);
         long Get_Index_Pointer();
         Node<T> Get_Uncommitted_Root();

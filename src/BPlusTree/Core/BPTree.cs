@@ -27,6 +27,7 @@ namespace BPlusTree.Core
         Node_Factory<T> Node_Factory;
         Cache_LRU<long, Node<T>> Cache;
         IStream_Factory StreamFactory;
+        Metadata Metadata;
 
         public BPlusTree(IStream_Factory stramFactory, int order, ISerializer<T> serializer)
         {
@@ -37,22 +38,25 @@ namespace BPlusTree.Core
         public BPlusTree(Stream metadataStream, Stream indexStream, Stream dataStream, int order, ISerializer<T> serializer)
         {
             Size = order;
+            Node_Factory = new Node_Factory<T>(serializer, Size);
+            Block_Size = Node_Factory.Size_In_Bytes(Size);
+            Pending_Changes = new Pending_Changes<T>(Block_Size, _index_Pointer, _data_Pointer, Node_Factory);
 
             Serializer = serializer;
-            Node_Factory = new Node_Factory<T>(serializer, Size);
-            Cache = new Cache_LRU<long, Node<T>>();
-            Block_Size = Node_Factory.Size_In_Bytes(Size);
 
             Index_Stream = indexStream;
             Data_Stream = dataStream;
             Metadata_Stream = metadataStream;
 
             Cached_Nodes = new Dictionary<long, Node<T>>();
+            Cache = new Cache_LRU<long, Node<T>>();
+            Metadata = new Metadata { Order = order };
+          
 
-            _index_Pointer = indexStream.Length; // Math.Max(8, indexStream.Length);
-            _data_Pointer = Data_Stream.Length;
+            // TODO, from metadata
+            //_index_Pointer = indexStream.Length; // Math.Max(8, indexStream.Length);
+            //_data_Pointer = Data_Stream.Length;
 
-            Pending_Changes = new Pending_Changes<T>(Block_Size, _index_Pointer, Node_Factory);
             Init();
         }
 
@@ -63,11 +67,16 @@ namespace BPlusTree.Core
             foreach (var address in Pending_Changes.Get_Freed_Empty_Slots())
                 Cache.Invalidate(address);
 
-            var newRoot = Pending_Changes.Commit(Index_Stream);
+            var newRoot = Pending_Changes.Commit(Index_Stream, Data_Stream);
 
             writes++;
             Metadata_Stream.Seek(0, SeekOrigin.Begin);
-            Metadata_Stream.Write(BitConverter.GetBytes(newRoot.Address), 0, 8);
+            var buffer = new byte[512];
+            Metadata.Data_Length = Pending_Changes.Get_Current_Data_Pointer();
+            Metadata.Index_Length = Pending_Changes.Get_Index_Pointer();
+            Metadata.Root_Address = newRoot.Address;
+            Metadata.To_Bytes_In_Buffer(buffer, 0);
+            Metadata_Stream.Write(buffer, 0, buffer.Length);
             Metadata_Stream.Flush();
 
             Root = newRoot;
@@ -93,17 +102,30 @@ namespace BPlusTree.Core
         {
             try
             {
-                var buffer = new byte[8];
-                Metadata_Stream.Seek(0, SeekOrigin.Begin);
-                Metadata_Stream.Read(buffer, 0, 8);
-                long root_Address = BitConverter.ToInt64(buffer, 0);
 
-                Root = Read_Root(root_Address);
-                if(Root.IsValid)
+                var buffer = new byte[512];
+                Metadata_Stream.Seek(0, SeekOrigin.Begin);
+                Metadata_Stream.Read(buffer, 0, buffer.Length);
+
+                var metadata = Metadata.From_Bytes(buffer);
+
+                _data_Pointer = metadata.Data_Length;
+                _index_Pointer = metadata.Index_Length;
+
+                Root = Read_Root(metadata.Root_Address);
+                if (Root.IsValid)
+                {
+                    Size = metadata.Order;
+                    Node_Factory = new Node_Factory<T>(Serializer, Size);
+                    Block_Size = Node_Factory.Size_In_Bytes(Size);
+                    Pending_Changes = new Pending_Changes<T>(Block_Size, _index_Pointer, _data_Pointer, Node_Factory);
+                    Metadata = metadata;
                     return;
+                }
             }
             catch (Exception) { }
 
+            
             var root = Node_Factory.Create_New(true);
             Write_Node(root);
             Pending_Changes.Append_New_Root(root);
@@ -113,7 +135,9 @@ namespace BPlusTree.Core
         public byte[] Get(T key)
         {
             var leaf = Find_Leaf_Node(key);
-            var data = Read_Data(leaf.Get_Data_Address(key));
+            long address = leaf.Get_Data_Address(key);
+
+            var data = Read_Data(address);
             return data;
         }
 
@@ -121,24 +145,25 @@ namespace BPlusTree.Core
         {
             var leaf = Find_Leaf_Node(key);
 
-            var data_Address = Data_Pointer();
-            Write_Data(value, key, 1);
+           // var data_Address = Data_Pointer();
+            var data_Address = Pending_Changes.Get_Current_Data_Pointer();
+            Write_Data(leaf, value, key, 1, data_Address);
 
             Node<T> newRoot = null;
             for(int i=0; i< leaf.Key_Num; i++)
                 if (key.Equals(leaf.Keys[i]))
                 {
                     return;
-                    var newLeaf = Node_Factory.Create_New_One_Like_This(leaf);
-                    newLeaf.Versions[i]++;
-                    newLeaf.Pointers[i] = data_Address;
+                    //var newLeaf = Node_Factory.Create_New_One_Like_This(leaf);
+                    //newLeaf.Versions[i]++;
+                    //newLeaf.Pointers[i] = data_Address;
 
-                    Write_Data(value, key, newLeaf.Versions[i]); 
+                    //Write_Data(value, key, newLeaf.Versions[i]); 
 
-                    //newRoot = Clone_Anchestors_Of(newLeaf);
+                    ////newRoot = Clone_Anchestors_Of(newLeaf);
 
-                    Pending_Changes.Append_New_Root(newRoot);
-                    return;
+                    //Pending_Changes.Append_New_Root(newRoot);
+                    //return;
                 }
 
             newRoot = Insert_in_node(leaf, key, data_Address);

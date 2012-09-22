@@ -13,6 +13,10 @@ Dequeue => Write async in block (and clean reserved empty slot)
 
 	Performances : 
 		- Cache LRU for reading nodes
+		- Write Data pages on commit
+		- Clustered index for small data.
+
+		- SODA, ASYNC batched commit
 
 	Clustered index (fixed size value on leaf)
 	Stream Factory (multiple reading vs one writing)

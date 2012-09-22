@@ -76,30 +76,43 @@ namespace BPlusTree.Core
             return Node_Factory.From_Bytes(buffer, Size);
         }
 
-        protected void Write_Data(byte[] value, T key, int version)
+
+
+        protected void Write_Data(Node<T> leaf, byte[] value, T key, int version, long address)
         {
             var data = new Data<T>
             { 
                 Key = key, 
                 Version = version, 
                 Payload= value, 
-                Timestamp = DateTime.Now
+                Timestamp = DateTime.Now, 
+                //Parent = leaf, 
+                Address = address
             };
 
-            var address = Data_Pointer();
-            Data_Stream.Seek(address, SeekOrigin.Begin);
+            Pending_Changes.Append_Data(data);
 
-            var bytes = data.To_Bytes(Serializer);
-            Data_Stream.Write(bytes, 0, bytes.Length);
+            //var address = Data_Pointer();
+            //Data_Stream.Seek(address, SeekOrigin.Begin);
 
-            _data_Pointer += bytes.Length;
+            //var bytes = data.To_Bytes(Serializer);
+            //Data_Stream.Write(bytes, 0, bytes.Length);
+
+            //_data_Pointer += bytes.Length;
         }
 
         protected byte[] Read_Data(long address)
         {
+            Data<T> data = null;
+            if(Pending_Changes.Has_Pending_Changes())
+            {
+                data = Pending_Changes.Get_Pending_Data().SingleOrDefault(d=> d.Address == address);
+                if(data!= null)
+                    return data.Payload;
+            }
             Data_Stream.Seek(address, SeekOrigin.Begin);
 
-            var data = Data<T>.From_Bytes(Data_Stream, Serializer);
+            data = Data<T>.From_Bytes(Data_Stream, Serializer);
             return data.Payload;
         }
 

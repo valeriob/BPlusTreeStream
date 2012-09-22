@@ -13,29 +13,34 @@ namespace BPlusTree.Core.Pending_Changes
         int Block_Size;
         Node<T> Uncommitted_Root;
 
-
         private long _index_Pointer;
+        private long _data_Pointer;
         List<Node<T>> Nodes;
         List<Block_Group> Empty_Slots;
         List<long> Freed_Empty_Slots;
         List<Node<T>> Pending_Nodes;
+        List<Data<T>> Pending_Data;
 
         Dictionary<long, Block> _base_Address_Index = new Dictionary<long, Block>();
         Dictionary<long, Block> _end_Address_Index = new Dictionary<long, Block>();
 
         public long Get_Index_Pointer() { return _index_Pointer; }
+        public long Get_Current_Data_Pointer() { return _data_Pointer; }
         public IEnumerable<Node<T>> Last_Cached_Nodes() { return Nodes; }
         public List<Block_Group> Get_Empty_Slots() { return Empty_Slots; }
         public Node<T> Get_Uncommitted_Root() { return Uncommitted_Root; }
         public IEnumerable<long> Get_Freed_Empty_Slots() { return Freed_Empty_Slots; }
 
-        public Pending_Changes(int blockSize, long index_Pointer,  Node_Factory<T> node_Factory )
+        public IEnumerable<Data<T>> Get_Pending_Data() { return Pending_Data; }
+
+        public Pending_Changes(int blockSize, long index_Pointer, long data_Pointer,  Node_Factory<T> node_Factory )
         {
             Block_Size = blockSize;
             Node_Factory = node_Factory;
 
             Freed_Empty_Slots = new List<long>();
             Pending_Nodes = new List<Node<T>>();
+            Pending_Data = new List<Data<T>>();
             Nodes = new List<Node<T>>();
             Empty_Slots = new List<Block_Group>();
 
@@ -43,6 +48,7 @@ namespace BPlusTree.Core.Pending_Changes
             _end_Address_Index = new Dictionary<long, Block>();
 
             _index_Pointer = index_Pointer;
+            _data_Pointer = data_Pointer;
         }
 
 
@@ -234,6 +240,30 @@ namespace BPlusTree.Core.Pending_Changes
         }
 
 
+        protected void Commit_Data(Stream stream)
+        {
+            long initial_Address = Pending_Data[0].Address;
+
+            int keySize = Node_Factory.Serializer.Serialized_Size_For_Single_Key_In_Bytes();
+            int bufferSize = 0;
+            for (int i = 0; i < Pending_Data.Count; i++)
+                bufferSize += Pending_Data[i].Total_Persisted_Size(keySize);
+
+            byte[] buffer = new byte[bufferSize];
+            int offset = 0;
+            for (int i = 0; i < Pending_Data.Count; i++)
+            {
+                Pending_Data[i].Write_To_Buffer(Node_Factory.Serializer, buffer, offset);
+                offset += Pending_Data[i].Total_Persisted_Size(keySize);
+            }
+
+            Pending_Data.Clear();
+
+            stream.Seek(initial_Address, SeekOrigin.Begin);
+            stream.Write(buffer, 0, buffer.Length);
+        }
+
+
         public void Free_Address(long address)
         {
             if (address != 0)
@@ -243,6 +273,11 @@ namespace BPlusTree.Core.Pending_Changes
         public void Append_Node(Node<T> node)
         {
             Pending_Nodes.Add(node);
+        }
+        public void Append_Data(Data<T> data)
+        {
+            Pending_Data.Add(data);
+            _data_Pointer = data.Address + data.Total_Persisted_Size(Node_Factory.Serializer.Serialized_Size_For_Single_Key_In_Bytes());
         }
 
         public void Append_New_Root(Node<T> root)
@@ -255,8 +290,10 @@ namespace BPlusTree.Core.Pending_Changes
         public int Blocks_Count;
         public Dictionary<int, int> Blocks_Count_By_Lenght = new Dictionary<int, int>();
 
-        public Node<T> Commit(Stream indexStream)
+        public Node<T> Commit(Stream indexStream, Stream dataStream)
         {
+            Commit_Data(dataStream);
+
             var pending_Nodes_ = new List<Node<T>>();
 
             Find_All_Pending_Nodes_From(pending_Nodes_, Uncommitted_Root);

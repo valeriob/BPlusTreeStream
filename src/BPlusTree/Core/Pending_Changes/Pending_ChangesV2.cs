@@ -362,6 +362,29 @@ namespace BPlusTree.Core.Pending_Changes
         {
             return Uncommitted_Root != null;
         }
+
+
+        public void Append_Data(Data<T> data)
+        {
+            throw new NotImplementedException();
+        }
+
+        public long Get_Current_Data_Pointer()
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public Node<T> Commit(Stream indexStream, Stream dataStream)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public IEnumerable<Data<T>> Get_Pending_Data()
+        {
+            throw new NotImplementedException();
+        }
     }
 
  
