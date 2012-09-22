@@ -155,7 +155,8 @@ namespace BPlusTree.Core
             else
             {
                 var data = leaf.Get_Clustered_Data(key);
-                return data.Payload;
+                
+                return data;
             }
         }
 
@@ -182,7 +183,9 @@ namespace BPlusTree.Core
                 newRoot = Insert_in_node(leaf, key, 0);
 
                 leaf = Find_Leaf_Node(key, newRoot);
-                var data = new Clustered_Data<T>(1, DateTime.Now, value);
+                //var data = new Clustered_Data<T>(1, DateTime.Now, value);
+                var data = new byte[Cluster_Data_Length + 12];
+                Array.Copy(value, 0, data, 12, value.Length);
                 leaf.Insert_Clustered_Data(data, key);
             }
 

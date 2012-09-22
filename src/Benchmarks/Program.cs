@@ -28,7 +28,7 @@ namespace Benchmarks
             { 
               // new Ravendb(),
                new BPlusTree(),
-               // new BPlusTree_Azure(),
+              //  new BPlusTree_Azure(),
                //new Memory_Copy(),
               // new File_Flush_Benchmark(),
              //  new CSharpTest_BPlusTree(),

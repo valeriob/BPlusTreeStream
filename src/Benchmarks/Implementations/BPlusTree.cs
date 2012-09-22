@@ -14,6 +14,7 @@ namespace Benchmarks
         String_BPlusTree<int> tree;
         Stream indexStream;
         ISerializer<int> serializer = new Int_Serializer();
+        Random random = new Random(DateTime.Now.Millisecond);
 
         public BPlusTree()
         {
@@ -39,24 +40,24 @@ namespace Benchmarks
             var dataStream = new FileStream(dataFile, FileMode.OpenOrCreate);
 
             var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, 
-                dataStream, 128, 512, 20, serializer);
+                dataStream, 128, 0, 20, serializer);
             tree = new String_BPlusTree<int>(appendBpTree);
 
         }
 
         public override void Prepare(int count, int batch)
         {
-            //return;
+            return;
 
-            //for (int i = 0; i < count; i += batch)
-            //{
-            //    for (var j = i; j < i + batch; j++)
-            //    {
-            //        var g = Guid.NewGuid();
-            //        tree.Put(j +"", "text about " + j);
-            //    }
-            //    tree.Commit();
-            //}
+            for (int i = 0; i < count/10; i += batch)
+            {
+                for (var j = i; j < i + batch; j++)
+                {
+                    var g = Guid.NewGuid();
+                    tree.Put(j , "text about " + j);
+                }
+                tree.Commit();
+            }
         }
 
         public override void Run(int number_Of_Inserts, int batch)
@@ -122,7 +123,8 @@ namespace Benchmarks
             ///  Read Only
             //for (int i = 0; i < number_Of_Inserts; i++)
             //{
-            //    result = tree.Get(i);
+            //    var index = random.Next(number_Of_Inserts /10 - 1);
+            //    result = tree.Get(index);
             //}
 
             var inner = tree.BPlusTree as BPlusTree<int>;

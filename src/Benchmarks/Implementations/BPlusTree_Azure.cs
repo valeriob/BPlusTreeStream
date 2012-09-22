@@ -35,6 +35,8 @@ namespace Benchmarks
             long maxValue = uint.MaxValue - uint.MaxValue % 512;
 
             var account = CloudStorageAccount.DevelopmentStorageAccount;
+            
+            account = new CloudStorageAccount(new StorageCredentialsAccountAndKey("valeriob", "2SzgTAaG11U0M1gQ19SNus/vv1f0efwYOwZHL1w9YhTKEYsU1ul+s/ke92DOE1wIeCKYz5CuaowtDceUvZW2Rw=="),true);
             var blobClient =  account.CreateCloudBlobClient();
 
             var container = blobClient.GetContainerReference(container_Name);
@@ -59,7 +61,7 @@ namespace Benchmarks
 
             
 
-            var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, dataStream, 128, 0, 0 , serializer);
+            var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, dataStream, 128, 512, 0 , serializer);
             tree = new String_BPlusTree<int>(appendBpTree);
         }
 

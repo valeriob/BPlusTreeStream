@@ -44,7 +44,7 @@ namespace BPlusTree.Core
                 return node;
             }
 
-            return new Node<T>(this, Order, isLeaf, IsClustered);
+            return new Node<T>(this, Order, isLeaf, IsClustered, Clustered_Data_Size);
         }
 
         protected void Build()
@@ -54,7 +54,7 @@ namespace BPlusTree.Core
                 _lock.WaitOne();
 
                 for (int i = 0; i < 50; i++)
-                    nodes.Enqueue(new Node<T>(this, Order, false, IsClustered));
+                    nodes.Enqueue(new Node<T>(this, Order, false, IsClustered, Clustered_Data_Size));
 
                 _lock.Reset();
             }
@@ -98,8 +98,14 @@ namespace BPlusTree.Core
             {
                 offset += 8 * (node.Pointers.Length);
 
-                for (int i = 1; i < key_Num + 1; i++)
-                    node.Data[i] = Clustered_Data<T>.From_Bytes(buffer, offset + i * Clustered_Data_Size, Clustered_Data_Size);
+                fixed (byte* p_Data = &node.Data[0,0])
+                fixed (byte* p_buff = &buffer[0])
+                {
+                    byte* shifted = p_buff + offset;
+                    Unsafe_Utilities.Memcpy(shifted, p_Data, Clustered_Data_Size * (key_Num + 1));
+                }
+                //for (int i = 1; i < key_Num + 1; i++)
+                //     node.Data[i] = Clustered_Data<T>.From_Bytes(buffer, offset + i * Clustered_Data_Size, Clustered_Data_Size);
             }
 
             return node;
@@ -153,8 +159,15 @@ namespace BPlusTree.Core
             {
                 offset += 8 * (node.Pointers.Length);
 
-                for (int i = 1; i < key_Num + 1; i++)
-                    node.Data[i].Write_To_Buffer(buffer, offset + i * Clustered_Data_Size);
+                fixed (byte* p_Data = &node.Data[0, 0])
+                fixed (byte* p_buff = &buffer[0])
+                {
+                    byte* shifted = p_buff + offset;
+                    Unsafe_Utilities.Memcpy(p_Data, shifted, Clustered_Data_Size * (key_Num + 1));
+                }
+
+                //for (int i = 1; i < key_Num + 1; i++)
+                //    node.Data[i].Write_To_Buffer(buffer, offset + i * Clustered_Data_Size);
             }
         }
 
