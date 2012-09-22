@@ -192,7 +192,7 @@ namespace BPlusTree.Core
             var index = Array.BinarySearch(Keys, 0, Key_Num, key);
             var data = new byte[_clustered_Data_Length];
             for (int i = 0; i < data.Length; i++)
-                data[i] = Data[index + 1, i];
+                data[i] = Data[index + 1, i + 12];
             //return Data[index + 1];
             return data;
 

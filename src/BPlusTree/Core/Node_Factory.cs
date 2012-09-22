@@ -102,7 +102,7 @@ namespace BPlusTree.Core
                 fixed (byte* p_buff = &buffer[0])
                 {
                     byte* shifted = p_buff + offset;
-                    Unsafe_Utilities.Memcpy(shifted, p_Data, Clustered_Data_Size * (key_Num + 1));
+                    Unsafe_Utilities.Memcpy(p_Data, shifted, Clustered_Data_Size * (key_Num + 1));
                 }
                 //for (int i = 1; i < key_Num + 1; i++)
                 //     node.Data[i] = Clustered_Data<T>.From_Bytes(buffer, offset + i * Clustered_Data_Size, Clustered_Data_Size);
@@ -163,7 +163,7 @@ namespace BPlusTree.Core
                 fixed (byte* p_buff = &buffer[0])
                 {
                     byte* shifted = p_buff + offset;
-                    Unsafe_Utilities.Memcpy(p_Data, shifted, Clustered_Data_Size * (key_Num + 1));
+                    Unsafe_Utilities.Memcpy(shifted, p_Data, Clustered_Data_Size * (key_Num + 1));
                 }
 
                 //for (int i = 1; i < key_Num + 1; i++)

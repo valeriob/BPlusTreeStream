@@ -155,7 +155,8 @@ namespace BPlusTree.Core
             else
             {
                 var data = leaf.Get_Clustered_Data(key);
-                
+               // byte[] result = new byte[Cluster_Data_Length];
+               // Array.Copy(data, 12, result, 0, Cluster_Data_Length);
                 return data;
             }
         }

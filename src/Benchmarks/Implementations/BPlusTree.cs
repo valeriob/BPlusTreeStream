@@ -40,7 +40,7 @@ namespace Benchmarks
             var dataStream = new FileStream(dataFile, FileMode.OpenOrCreate);
 
             var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, 
-                dataStream, 128, 0, 20, serializer);
+                dataStream, 256, 0, 16, serializer);
             tree = new String_BPlusTree<int>(appendBpTree);
 
         }
@@ -123,7 +123,7 @@ namespace Benchmarks
             ///  Read Only
             //for (int i = 0; i < number_Of_Inserts; i++)
             //{
-            //    var index = random.Next(number_Of_Inserts /10 - 1);
+            //    var index = random.Next(number_Of_Inserts  - 1);
             //    result = tree.Get(index);
             //}
 

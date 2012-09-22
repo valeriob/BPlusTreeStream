@@ -11,7 +11,7 @@ namespace Benchmarks
     {
         static void Main(string[] args)
         {
-            var results = RunAll(100000, 1);
+            var results = RunAll(100000, 10);
             foreach (var result in results)
             {
                 Console.WriteLine(result.ToString());
