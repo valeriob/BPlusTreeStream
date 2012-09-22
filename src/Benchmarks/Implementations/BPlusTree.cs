@@ -28,8 +28,8 @@ namespace Benchmarks
                 File.Delete(metadataFile);
             if (File.Exists(dataFile))
                 File.Delete(dataFile);
-            
-            //var indexStream = new MemoryStream();
+
+            //indexStream = new MemoryStream();
             //var dataStream = new MemoryStream();
 
             var metadataStream = new FileStream(metadataFile, FileMode.OpenOrCreate);
@@ -40,9 +40,9 @@ namespace Benchmarks
             var dataStream = new FileStream(dataFile, FileMode.OpenOrCreate);
 
             var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, 
-                dataStream, 256, 0, 16, serializer);
+                dataStream, 128, 0, 0, serializer);
             tree = new String_BPlusTree<int>(appendBpTree);
-
+            
         }
 
         public override void Prepare(int count, int batch)
@@ -54,7 +54,8 @@ namespace Benchmarks
                 for (var j = i; j < i + batch; j++)
                 {
                     var g = Guid.NewGuid();
-                    tree.Put(j , "text about " + j);
+                    tree.Put(j, "abcdefghilmnopqrstuvz0123456789+abcdefghilmnopqrstuvz0123456789+abcdefghilmnopqrstuvz0123456789+abcdefghilmnopqrstuvz0123456789+");
+                    //tree.Put(j , "text about " + j);
                 }
                 tree.Commit();
             }
@@ -109,6 +110,8 @@ namespace Benchmarks
                 {
                     var g = Guid.NewGuid();
                     tree.Put(j, "text about " + j);
+                    //tree.Put(j, "abcdefghilmnopqrstuvz0123456789+abcdefghilmnopqrstuvz0123456789+abcdefghilmnopqrstuvz0123456789+abcdefghilmnopqrstuvz0123456789+");
+
                     //result = tree.Get(j);
                     //for (int k = j; k >= 0; k--)
                     //    result = tree.Get(k);
@@ -123,7 +126,7 @@ namespace Benchmarks
             ///  Read Only
             //for (int i = 0; i < number_Of_Inserts; i++)
             //{
-            //    var index = random.Next(number_Of_Inserts  - 1);
+            //    var index = random.Next(number_Of_Inserts - 1);
             //    result = tree.Get(index);
             //}
 

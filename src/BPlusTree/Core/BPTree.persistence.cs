@@ -10,6 +10,8 @@ namespace BPlusTree.Core
 {
     public partial class BPlusTree<T>
     {
+        public DateTime Current_Time;
+
         private long _index_Pointer;
         private long _data_Pointer;
 
@@ -79,14 +81,14 @@ namespace BPlusTree.Core
 
 
 
-        protected void Write_Data(Node<T> leaf, byte[] value, T key, int version, long address)
+        protected void Write_Data(byte[] value, T key, int version, long address)
         {
             var data = new Data<T>
             { 
                 Key = key, 
                 Version = version, 
                 Payload= value, 
-                Timestamp = DateTime.Now, 
+                Timestamp = Current_Time,
                 Address = address
             };
 

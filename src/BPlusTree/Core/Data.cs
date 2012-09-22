@@ -17,18 +17,6 @@ namespace BPlusTree.Core
         public long Address { get; set; }
         
 
-        //static int alignment = 512;
-        //public byte[] To_Bytes(ISerializer<T> serializer)
-        //{
-        //    var size = Total_Persisted_Size(serializer.Serialized_Size_For_Single_Key_In_Bytes());
-
-        //    var buffer = new byte[size];
-
-        //    Write_To_Buffer(serializer, buffer, 0);
-
-        //    return buffer;
-        //}
-
         public void Write_To_Buffer(ISerializer<T> serializer, byte[] buffer, int startIndex, int alignment)
         {
             int size = Total_Persisted_Size(serializer.Serialized_Size_For_Single_Key_In_Bytes(), alignment);

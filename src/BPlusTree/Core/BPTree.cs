@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Timers;
 
 namespace BPlusTree.Core
 {
@@ -31,6 +32,7 @@ namespace BPlusTree.Core
         Cache_LRU<long, Node<T>> Cache;
         IStream_Factory StreamFactory;
         Metadata Metadata;
+        
 
         public BPlusTree(IStream_Factory stramFactory, int order, ISerializer<T> serializer)
         {
@@ -57,14 +59,24 @@ namespace BPlusTree.Core
             Cached_Nodes = new Dictionary<long, Node<T>>();
             Cache = new Cache_LRU<long, Node<T>>();
             Metadata = new Metadata { Order = order };
-          
 
+            System.Threading.Tasks.Task.Factory.StartNew(() =>
+            {
+                while (true)
+                    lock (this)
+                    {
+                        Current_Time = DateTime.Now;
+                        System.Threading.Monitor.Wait(this, 100);
+                    }
+            });
             // TODO, from metadata
             //_index_Pointer = indexStream.Length; // Math.Max(8, indexStream.Length);
             //_data_Pointer = Data_Stream.Length;
 
             Init();
         }
+
+
 
         public void Commit()
         {
@@ -153,30 +165,34 @@ namespace BPlusTree.Core
                 return Read_Data(address);
             }
             else
-            {
-                var data = leaf.Get_Clustered_Data(key);
-               // byte[] result = new byte[Cluster_Data_Length];
-               // Array.Copy(data, 12, result, 0, Cluster_Data_Length);
-                return data;
-            }
+                return leaf.Get_Clustered_Data(key);            
         }
 
         public void Put(T key, byte[] value)
         {
             var leaf = Find_Leaf_Node(key);
 
+            int index = Array.BinarySearch(leaf.Keys,0, leaf.Key_Num, key);
+            if (index > 0)
+                return;
+            int i = index;
+            if (i < 0)
+                i = ~index;
+      
+
+
             Node<T> newRoot = null;
-            for (int i = 0; i < leaf.Key_Num; i++)
-                if (key.Equals(leaf.Keys[i]))
-                {
-                    // TODO
-                    return;
-                }
+            //for (int i = 0; i < leaf.Key_Num; i++)
+            //    if (key.Equals(leaf.Keys[i]))
+            //    {
+            //        // TODO
+            //        return;
+            //    }
 
             if (!IsClustered())
             {
                 var data_Address = Pending_Changes.Get_Current_Data_Pointer();
-                Write_Data(leaf, value, key, 1, data_Address);
+                Write_Data(value, key, 1, data_Address);
                 newRoot = Insert_in_node(leaf, key, data_Address);
             }
             else
