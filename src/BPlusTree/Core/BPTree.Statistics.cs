@@ -19,14 +19,14 @@ namespace BPlusTree.Core
         {
             int invalid = 0;
             int valid = 0;
-            int blockSize = Node_Factory.Size_In_Bytes(3);
+            int blockSize = _node_Factory.Size_In_Bytes(3);
             long position = Index_Stream.Position;
 
             Index_Stream.Seek(8, SeekOrigin.Begin);
             var buffer = new byte[blockSize];
             while (Index_Stream.Read(buffer, 0, buffer.Length) > 0)
             {
-                var node = Node_Factory.From_Bytes(buffer, 3);
+                var node = _node_Factory.From_Bytes(buffer, 3);
                 if (node.IsValid)
                     valid++;
                 else

@@ -23,24 +23,24 @@ namespace BPlusTree.Core
 
         protected void Write_Node(Node<T> node)
         {
-            Pending_Changes.Append_Node(node);
+            _pending_Changes.Append_Node(node);
         }
 
         protected void Renew_Node_And_Dispose_Space(Node<T> node)
         {
-            Pending_Changes.Free_Address(node.Address);
+            _pending_Changes.Free_Address(node.Address);
             node.Is_Volatile = true;
             node.Address = 0;
         }
 
         protected Node<T> Read_Root(long address)
         {
-            var buffer = new byte[Block_Size];
+            var buffer = new byte[_block_Size];
 
             Index_Stream.Seek(address, SeekOrigin.Begin);
             Index_Stream.Read(buffer, 0, buffer.Length);
 
-            var node = Node_Factory.From_Bytes(buffer, Size);
+            var node = _node_Factory.From_Bytes(buffer, Order);
             node.Address = address;
             return node;
         }
@@ -49,16 +49,16 @@ namespace BPlusTree.Core
         {
              long address = parent.Pointers[key_Index];
              
-             var node = Cache.Get(address);
+             var node = _cache.Get(address);
              //var node = Read_Node(address);
              if (node == null)
              {
                  node = Read_Node(address);
-                 Cache.Put(address, node);
+                 _cache.Put(address, node);
              }
              else
              {
-                 node = Node_Factory.Create_New_One_Detached_Like_This(node);
+                 node = _node_Factory.Create_New_One_Detached_Like_This(node);
              }
              //var node = Read_Node(address);
 
@@ -71,12 +71,12 @@ namespace BPlusTree.Core
 
         protected Node<T> Read_Node(long address)
         {
-            var buffer = new byte[Block_Size];
+            var buffer = new byte[_block_Size];
 
             Index_Stream.Seek(address, SeekOrigin.Begin);
             Index_Stream.Read(buffer, 0, buffer.Length);
 
-            return Node_Factory.From_Bytes(buffer, Size);
+            return _node_Factory.From_Bytes(buffer, Order);
         }
 
 
@@ -92,15 +92,15 @@ namespace BPlusTree.Core
                 Address = address
             };
 
-            Pending_Changes.Append_Data(data);
+            _pending_Changes.Append_Data(data);
         }
 
         protected byte[] Read_Data(long address)
         {
             Data<T> data = null;
-            if(Pending_Changes.Has_Pending_Changes())
+            if(_pending_Changes.Has_Pending_Changes())
             {
-                data = Pending_Changes.Get_Pending_Data().SingleOrDefault(d=> d.Address == address);
+                data = _pending_Changes.Get_Pending_Data().SingleOrDefault(d=> d.Address == address);
                 if(data!= null)
                     return data.Payload;
             }
@@ -108,7 +108,8 @@ namespace BPlusTree.Core
             // TODO Data cache ?
             Data_Stream.Seek(address, SeekOrigin.Begin);
 
-            data = Data<T>.From_Bytes(Data_Stream, Serializer, Node_Factory.Alignment);
+            data = _data_Serializer.From_Bytes(Data_Stream);
+            //data = Data<T>.From_Bytes(Data_Stream, _key_Serializer, _node_Factory.Alignment);
             return data.Payload;
         }
 

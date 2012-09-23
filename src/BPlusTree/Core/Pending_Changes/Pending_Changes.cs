@@ -9,8 +9,9 @@ namespace BPlusTree.Core.Pending_Changes
 {
     public class Pending_Changes<T> : IPending_Changes<T> where T: IComparable<T>, IEquatable<T>
     {
-        Node_Factory<T> Node_Factory;
-        int Block_Size;
+        Node_Factory<T> _node_Factory;
+        Data_Serializer<T> _data_Serializer;
+        int _block_Size;
         Node<T> Uncommitted_Root;
 
         private long _index_Pointer;
@@ -33,10 +34,11 @@ namespace BPlusTree.Core.Pending_Changes
 
         public IEnumerable<Data<T>> Get_Pending_Data() { return Pending_Data; }
 
-        public Pending_Changes(int blockSize, long index_Pointer, long data_Pointer,  Node_Factory<T> node_Factory )
+        public Pending_Changes(int blockSize, long index_Pointer, long data_Pointer,  Node_Factory<T> node_Factory, Data_Serializer<T> dataSerializer )
         {
-            Block_Size = blockSize;
-            Node_Factory = node_Factory;
+            _block_Size = blockSize;
+            _node_Factory = node_Factory;
+            _data_Serializer = dataSerializer;
 
             Freed_Empty_Slots = new List<long>();
             Pending_Nodes = new List<Node<T>>();
@@ -83,19 +85,19 @@ namespace BPlusTree.Core.Pending_Changes
                     Block before = _end_Address_Index[address];
 
                     int beforeLength = before.Length;
-                    before.Append_Block(Block_Size);
+                    before.Append_Block(_block_Size);
                     int newLength = before.Length;
 
-                    if (_base_Address_Index.ContainsKey(address + Block_Size))
+                    if (_base_Address_Index.ContainsKey(address + _block_Size))
                     {
-                        Block after = _base_Address_Index[address + Block_Size];
+                        Block after = _base_Address_Index[address + _block_Size];
 
                         Fix_Block_Position_In_Groups(after, after.Base_Address(), 0, after.Length, 0);
 
                         newLength += after.Length;
                         before.Append_Block(after.Length);
 
-                        _base_Address_Index.Remove(address + Block_Size);
+                        _base_Address_Index.Remove(address + _block_Size);
                     }
 
                     _end_Address_Index.Remove(address);
@@ -105,19 +107,19 @@ namespace BPlusTree.Core.Pending_Changes
                     continue;
                 }
 
-                if (_base_Address_Index.ContainsKey(address + Block_Size))
+                if (_base_Address_Index.ContainsKey(address + _block_Size))
                 {
-                    Block after = _base_Address_Index[address + Block_Size];
+                    Block after = _base_Address_Index[address + _block_Size];
 
                     _base_Address_Index.Remove(after.Base_Address());
-                    after.Prepend_Block(Block_Size);
+                    after.Prepend_Block(_block_Size);
                     _base_Address_Index[after.Base_Address()] = after;
 
-                    Fix_Block_Position_In_Groups(after, after.Base_Address() + Block_Size, after.Base_Address(), after.Length - Block_Size, after.Length);
+                    Fix_Block_Position_In_Groups(after, after.Base_Address() + _block_Size, after.Base_Address(), after.Length - _block_Size, after.Length);
                     continue;
                 }
 
-                Insert_Block(address, Block_Size);
+                Insert_Block(address, _block_Size);
             }
         }
 
@@ -222,7 +224,7 @@ namespace BPlusTree.Core.Pending_Changes
         protected void Update_Addresses_From_Base(Node<T>[] nodes, Node<T> root, ref long base_Address)
         {
             root.Address = base_Address;
-            base_Address += Block_Size;
+            base_Address += _block_Size;
             if (root.IsLeaf)
                 return;
 
@@ -247,23 +249,26 @@ namespace BPlusTree.Core.Pending_Changes
 
             long initial_Address = Pending_Data[0].Address;
 
-            int keySize = Node_Factory.Serializer.Serialized_Size_For_Single_Key_In_Bytes();
+            int keySize = _node_Factory.Serializer.Serialized_Size_For_Single_Key_In_Bytes();
             int bufferSize = 0;
             for (int i = 0; i < Pending_Data.Count; i++)
-                bufferSize += Pending_Data[i].Total_Persisted_Size(keySize, Node_Factory.Alignment);
+                bufferSize += _data_Serializer.Total_Persisted_Size(Pending_Data[i]);
 
             byte[] buffer = new byte[bufferSize];
             int offset = 0;
             for (int i = 0; i < Pending_Data.Count; i++)
             {
-                Pending_Data[i].Write_To_Buffer(Node_Factory.Serializer, buffer, offset, Node_Factory.Alignment);
-                offset += Pending_Data[i].Total_Persisted_Size(keySize, Node_Factory.Alignment);
+                _data_Serializer.Write_Data_To_Buffer(Pending_Data[i], buffer, offset);
+                //Pending_Data[i].Write_To_Buffer(_node_Factory.Serializer, buffer, offset);
+                offset += _data_Serializer.Total_Persisted_Size(Pending_Data[i]);
+                //offset += Pending_Data[i].Total_Persisted_Size(keySize, _node_Factory.Alignment);
             }
 
             Pending_Data.Clear();
 
             stream.Seek(initial_Address, SeekOrigin.Begin);
             stream.Write(buffer, 0, buffer.Length);
+            
         }
 
 
@@ -280,7 +285,8 @@ namespace BPlusTree.Core.Pending_Changes
         public void Append_Data(Data<T> data)
         {
             Pending_Data.Add(data);
-            _data_Pointer = data.Address + data.Total_Persisted_Size(Node_Factory.Serializer.Serialized_Size_For_Single_Key_In_Bytes(), Node_Factory.Alignment);
+            _data_Pointer = data.Address + _data_Serializer.Total_Persisted_Size(data);
+                //+ data.Total_Persisted_Size(_node_Factory.Serializer.Serialized_Size_For_Single_Key_In_Bytes(), _node_Factory.Alignment);
         }
 
         public void Append_New_Root(Node<T> root)
@@ -301,7 +307,7 @@ namespace BPlusTree.Core.Pending_Changes
 
             Find_All_Pending_Nodes_From(pending_Nodes_, Uncommitted_Root);
 
-            int neededBytes = Block_Size * pending_Nodes_.Count;
+            int neededBytes = _block_Size * pending_Nodes_.Count;
 
             var blocks = Look_For_Available_Blocks(neededBytes);
 
@@ -324,7 +330,7 @@ namespace BPlusTree.Core.Pending_Changes
 
             var addressesQueue = new Queue<long>();
             foreach (var block in blocks)
-                for (int i = 0; i < block.Length && pending_Nodes_.Count > addressesQueue.Count; i += Block_Size)
+                for (int i = 0; i < block.Length && pending_Nodes_.Count > addressesQueue.Count; i += _block_Size)
                     addressesQueue.Enqueue(block.Base_Address() + i);
 
             Update_Addresses_From( Uncommitted_Root, addressesQueue);
@@ -337,16 +343,16 @@ namespace BPlusTree.Core.Pending_Changes
                     break;
 
                 var toUpdate = new List<Node<T>>();
-                for (int j = 0; j < block.Length && nodes.Count > 0; j += Block_Size)
+                for (int j = 0; j < block.Length && nodes.Count > 0; j += _block_Size)
                 {
                     toUpdate.Add(nodes.Dequeue());
-                    block.Use(Block_Size);
+                    block.Use(_block_Size);
                 }
 
-                int buffer_Size = toUpdate.Count * Block_Size;
+                int buffer_Size = toUpdate.Count * _block_Size;
                 var buffer = new byte[buffer_Size];
                 for (int i = 0; i < toUpdate.Count; i++)
-                    Node_Factory.To_Bytes_In_Buffer(toUpdate[i], buffer, i * Block_Size);
+                    _node_Factory.To_Bytes_In_Buffer(toUpdate[i], buffer, i * _block_Size);
 
                 indexStream.Seek(block.Base_Address(), SeekOrigin.Begin);
                 indexStream.Write(buffer, 0, buffer.Length);
@@ -372,7 +378,7 @@ namespace BPlusTree.Core.Pending_Changes
             Add_Block_Address_To_Available_Space();
             Freed_Empty_Slots.Clear();
 
-            var newRoot = Node_Factory.Create_New_One_Like_This(Uncommitted_Root);
+            var newRoot = _node_Factory.Create_New_One_Like_This(Uncommitted_Root);
             for (int i = 0; i < newRoot.Key_Num + 1; i++)
                 newRoot.Children[i] = null;
             return newRoot;

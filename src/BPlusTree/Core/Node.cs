@@ -144,6 +144,7 @@ namespace BPlusTree.Core
             node_Right.Children[node_Right.Key_Num] = node_Left.Children[size];
 
             //node_Right.Data[node_Right.Key_Num] = node_Left.Data[size];
+            
             for (int j = 0; j < _clustered_Data_Length; j++)
                 node_Right.Data[node_Right.Key_Num, j] = node_Left.Data[size, j];
             
@@ -156,7 +157,6 @@ namespace BPlusTree.Core
                 node_Left.Key_Num++;
                 node_Right.Pointers[0] = node_Left.Pointers[0];
                 node_Right.Children[0] = node_Left.Children[0];
-                //node_Right.Data[0] = node_Left.Data[0];
 
                 node_Left.Pointers[0] = node_Right.Address;  //TODO double linked list
                 mid_Key = node_Left.Keys[size / 2 + 1];
@@ -185,7 +185,7 @@ namespace BPlusTree.Core
                     Debug.Assert(index == i);
                     return Pointers[i + 1];
                 }
-            throw new Exception("Key " + key + " not found !");
+            throw new Key_Not_Found(key);//"Key " + key + " not found !");
         }
         public byte[] Get_Clustered_Data(T key)
         {

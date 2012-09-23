@@ -7,7 +7,7 @@ using System.Text;
 
 namespace BPlusTree
 {
-    public interface IBPlusTree<T>
+    public interface IBPlusTree<T> : IDisposable
     {
         byte[] Get(T key);
         void Put(T key, byte[] value);
@@ -15,6 +15,7 @@ namespace BPlusTree
         void Flush();
         void Commit();
         void RollBack();
+
     }
     
  
