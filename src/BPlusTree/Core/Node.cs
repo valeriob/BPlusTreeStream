@@ -13,7 +13,6 @@ namespace BPlusTree.Core
     public class Node<T> : IDisposable where T: IComparable<T>, IEquatable<T>
     {
         public bool IsLeaf { get; set; }
-        public bool IsClustered { get; set; }
 
         public T[] Keys { get; set; }
         public long[] Pointers { get; set; }
@@ -21,6 +20,7 @@ namespace BPlusTree.Core
         public int[] Versions { get; set; }
         public byte[,] Data { get; set; }
 
+        public bool IsClustered { get; set; }
         public Node<T> Parent { get; set; }
         public long Address { get; set; }
         public Node<T>[] Children { get; protected set; }
@@ -234,8 +234,10 @@ namespace BPlusTree.Core
             {
                 string children = "";
                 for (int i = 0; i < Key_Num + 1; i++)
-                    if(Children[i] != null)
-                        children += " { "+ Children[i].Print_Keys() + " } , ";
+                    if (Children[i] != null)
+                        children += " { " + Children[i].Print_Keys() + " } , ";
+                    else
+                        children += " { N/L }, ";
                 children = children.TrimEnd(',', ' ');
 
                 return string.Format("{2} {1} Node : {0}.  Children : [ {3} ]", keys, root, Address, children);
@@ -266,4 +268,11 @@ namespace BPlusTree.Core
         public T Mid_Key { get; set; }
     }
 
+
+    public struct Node_Reference<T> where T : IComparable<T>, IEquatable<T>
+    {
+        public Node<T> Node { get; set; }
+
+        public long Address { get; set; }
+    }
 }

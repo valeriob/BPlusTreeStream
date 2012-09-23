@@ -8,7 +8,7 @@ using System.Text;
 
 namespace BPlusTree.Core
 {
-    public partial class BPlusTree<T>
+    public partial class BPlusTree<T> : IData_Reader<T>
     {
         public DateTime Current_Time;
 
@@ -45,7 +45,7 @@ namespace BPlusTree.Core
             return node;
         }
 
-        protected Node<T> Read_Node_From_Pointer(Node<T> parent, int key_Index)
+        public Node<T> Read_Node_From_Pointer(Node<T> parent, int key_Index)
         {
              long address = parent.Pointers[key_Index];
              
@@ -97,24 +97,27 @@ namespace BPlusTree.Core
 
         protected byte[] Read_Data(long address)
         {
-            Data<T> data = null;
-            if(_pending_Changes.Has_Pending_Changes())
-            {
-                data = _pending_Changes.Get_Pending_Data().SingleOrDefault(d=> d.Address == address);
-                if(data!= null)
-                    return data.Payload;
-            }
-
-            // TODO Data cache ?
-            Data_Stream.Seek(address, SeekOrigin.Begin);
-
-            data = _data_Serializer.From_Bytes(Data_Stream);
-            //data = Data<T>.From_Bytes(Data_Stream, _key_Serializer, _node_Factory.Alignment);
+            var reader = this as IData_Reader<T>;
+            Data<T> data = reader.Read_Data(address);
             return data.Payload;
         }
 
 
-       
+
+
+        Data<T> IData_Reader<T>.Read_Data(long address)
+        {
+            Data<T> data = null;
+            if (_pending_Changes.Has_Pending_Changes())
+            {
+                data = _pending_Changes.Get_Pending_Data().SingleOrDefault(d => d.Address == address);
+                if (data != null)
+                    return data;
+            }
+
+            Data_Stream.Seek(address, SeekOrigin.Begin);
+            return _data_Serializer.From_Bytes(Data_Stream);
+        }
     }
 
 

@@ -55,6 +55,7 @@
   <ItemGroup>
     <Compile Include="dictionary_should.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="leafs_right_enumerator_should.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BPlusTree\BPlusTree.csproj">

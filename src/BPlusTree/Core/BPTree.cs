@@ -318,7 +318,7 @@ namespace BPlusTree.Core
             return newNode;
         }
 
-        protected Node<T> Find_Leaf_Node(T key)
+        public Node<T> Find_Leaf_Node(T key)
         {
             var node = Root;
             if(_pending_Changes.Has_Pending_Changes())
@@ -329,7 +329,7 @@ namespace BPlusTree.Core
 
         
 
-        protected Node<T> Find_Leaf_Node(T key, Node<T> root)
+        public Node<T> Find_Leaf_Node(T key, Node<T> root)
         {
             int depth = 0;
             while (!root.IsLeaf)
