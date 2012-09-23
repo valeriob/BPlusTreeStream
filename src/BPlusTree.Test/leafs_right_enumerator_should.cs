@@ -10,7 +10,7 @@ namespace BPlusTree.Test
         string name = "leafs_right_enumerator_should";
 
         [TestMethod]
-        public void being_able_to_create_instance_of_itself()
+        public void be_able_enumerate_all_values()
         {
             var cfg = Config.Configuration<int>.Default_For(name);
             cfg.BPTree_Order = 3;

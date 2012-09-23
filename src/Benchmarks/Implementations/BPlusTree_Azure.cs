@@ -116,6 +116,7 @@ namespace Benchmarks
 
     public class Azure_Stream_Factory : IStream_Factory
     {
+        CloudBlobClient _blobClient;
         CloudBlobContainer container;
         string _container_Name = "bplustree";
 
@@ -128,9 +129,9 @@ namespace Benchmarks
         {
             _container_Name = container_Name;
 
-            var blobClient = account.CreateCloudBlobClient();
+            _blobClient = account.CreateCloudBlobClient();
 
-            container = blobClient.GetContainerReference(container_Name);
+            container = _blobClient.GetContainerReference(container_Name);
             container.CreateIfNotExist();
         }
 
@@ -183,7 +184,15 @@ namespace Benchmarks
             var stream = new Lokad.Cqrs.TapeStorage.PageBlobReadStream(blob);
             return stream;
         }
-    
+
+
+
+        public void Clear()
+        {
+            var blobs = container.ListBlobs();
+            foreach (var blob in blobs)
+                _blobClient.GetBlobReference(blob.Uri+"").DeleteIfExists();
+        }
     }
 
 }

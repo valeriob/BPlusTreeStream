@@ -67,14 +67,14 @@ namespace BPlusTree.Core
             Alignment = alignment;
             Cluster_Data_Length = cluster_data_length;
 
+            _key_Serializer = serializer;
+
             _node_Factory = new Node_Factory<T>(_key_Serializer, Order, Alignment, Cluster_Data_Length);
             _block_Size = _node_Factory.Size_In_Bytes(Order);
 
             _data_Serializer = new Data_Serializer<T>(_key_Serializer, Alignment, 2, 1024);
             _pending_Changes = new Pending_Changes<T>(_block_Size, _index_Pointer, _data_Pointer, _node_Factory, _data_Serializer);
 
-
-            _key_Serializer = serializer;
 
             Index_Stream = indexStream;
             Data_Stream = dataStream;

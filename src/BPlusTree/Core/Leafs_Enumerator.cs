@@ -17,10 +17,8 @@ namespace BPlusTree.Core
                 throw new Exception("not a leaf");
 
             _reader = reader;
-           // var dataAddress= leaf.Get_Data_Address(key);
             _current_Key = key;
             _current_Node = leaf;
-          //  Current = reader.Read_Data(dataAddress);
         }
 
 
@@ -33,7 +31,7 @@ namespace BPlusTree.Core
 
         object System.Collections.IEnumerator.Current
         {
-            get { throw new NotImplementedException(); }
+            get { return Current; }
         }
 
         public bool MoveNext()
@@ -56,7 +54,7 @@ namespace BPlusTree.Core
             }
             else
             {
-                while (_current_Key.CompareTo(key) >= 0) //&& indexOf + 1 > node.Key_Num
+                while (_current_Key.CompareTo(key) >= 0)
                 {
                     if (node.Parent == null)
                         return false;
@@ -72,7 +70,6 @@ namespace BPlusTree.Core
                     key = node.Keys[indexOf];
                 }
             }
-
 
             node = _reader.Find_Leaf_Node(key, node);
             _current_Node = node;

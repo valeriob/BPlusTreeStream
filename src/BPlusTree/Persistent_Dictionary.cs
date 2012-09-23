@@ -1,4 +1,5 @@
 ﻿using BPlusTree.Config;
+//using BPlusTree.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -66,7 +67,10 @@ namespace BPlusTree
 
         public ICollection<TValue> Values
         {
-            get { throw new NotImplementedException(); }
+            get 
+            { 
+                throw new NotImplementedException(); 
+            }
         }
 
         public TValue this[TKey key]
@@ -131,6 +135,7 @@ namespace BPlusTree
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
             throw new NotImplementedException();
+            //return new Leafs_Right_Enumerator<TKey>(leaf, key, _bptree);
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
