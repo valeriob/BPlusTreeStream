@@ -5,7 +5,7 @@ using BPlusTree.Core;
 namespace BPlusTree.Test
 {
     [TestClass]
-    public class leafs_right_enumerator_should
+    public class enumerator_should
     {
         string name = "leafs_right_enumerator_should";
 
@@ -33,14 +33,12 @@ namespace BPlusTree.Test
             dictionary.Clear();
 
             int count = 10;
-
             for (int i = 0; i < count; i++)
                 dictionary[i] = i;
 
             var allKeys = dictionary.Keys;
 
             Assert.AreEqual(allKeys.Count, count);
-
             for (int i = 0; i < count; i++)
                 Assert.IsTrue(allKeys.Contains(i));
         }

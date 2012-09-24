@@ -32,7 +32,7 @@ namespace BPlusTree.Core
         Node_Factory<T> _node_Factory;
         Cache_LRU<long, Node<T>> _cache;
         IStream_Factory _streamFactory;
-        Metadata _metadata;
+        public Metadata _metadata { get; protected set; }
         Data_Serializer<T> _data_Serializer;
 
         public BPlusTree(Configuration<T> cfg)
@@ -106,6 +106,9 @@ namespace BPlusTree.Core
             _metadata.Root_Address = newRoot.Address;
             _metadata.Clustered_Data_Length = Cluster_Data_Length;
             _metadata.Alignment = Alignment;
+            _metadata.Number_Of_Keys += key_added;
+            _metadata.Number_Of_Leaves += leaves_added;
+            _metadata.Number_Of_Nodes += nodes_added;
 
             _metadata.To_Bytes_In_Buffer(buffer, 0);
             Metadata_Stream.Write(buffer, 0, buffer.Length);
@@ -115,7 +118,8 @@ namespace BPlusTree.Core
 
             _pending_Changes.Clean_Root();
 
-            // TODO persist empty pages on metadata
+            key_added = leaves_added = nodes_added = 0;
+            // TODO persist empty pages on metadata ?
             //Cached_Nodes.Clear();
             //foreach (var node in Pending_Changes.Last_Cached_Nodes())
             //    Cached_Nodes[node.Address] = node;
@@ -218,6 +222,7 @@ namespace BPlusTree.Core
             }
 
             _pending_Changes.Append_New_Root(newRoot);
+            Key_Added();
         }
 
         public bool Delete(T key)
@@ -265,6 +270,10 @@ namespace BPlusTree.Core
                 var split = node.Split(_node_Factory);
 
                 Write_Node(split.Node_Right);
+                if (node.IsLeaf)
+                    Leave_Added();
+                else
+                    Node_Added();
 
                 if (node.Parent == null) // if i'm splitting the root, i need a new up level
                 {
@@ -279,6 +288,7 @@ namespace BPlusTree.Core
                     root.Key_Num = 1;
                     split.Node_Left.Parent = root;
                     Write_Node(root);
+                    Node_Added();
 
                     split.Node_Left.Parent = split.Node_Right.Parent = root;
                     newRoot = root;

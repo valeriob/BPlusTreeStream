@@ -43,8 +43,7 @@ namespace BPlusTree
                 _bptree.Get(key);
                 return true;
             }
-            catch (Exception)
-            { }
+            catch (Exception){ }
             return false;
         }
 
@@ -57,11 +56,6 @@ namespace BPlusTree
             }
         }
 
-        public bool Remove(TKey key)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool TryGetValue(TKey key, out TValue value)
         {
             try
@@ -70,8 +64,7 @@ namespace BPlusTree
                 value = _value_Serializer.Get_Instance(data, 0);
                 return true;
             }
-            catch (Exception)
-            { }
+            catch (Exception){ }
             value = default(TValue);
             return false;
         }
@@ -124,14 +117,10 @@ namespace BPlusTree
             return data.Equals(item);
         }
 
-        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
-        {
-            throw new NotImplementedException();
-        }
 
         public int Count
         {
-            get { throw new NotImplementedException(); }
+            get { return _bptree._metadata.Number_Of_Keys; }
         }
 
         public bool IsReadOnly
@@ -139,19 +128,28 @@ namespace BPlusTree
             get { return false; }
         }
 
-        public bool Remove(KeyValuePair<TKey, TValue> item)
-        {
-            throw new NotImplementedException();
-        }
 
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
-            throw new NotImplementedException();
-            //return new Leafs_Right_Enumerator<TKey>(leaf, key, _bptree);
-            //return new BPlusTree.Core.Values_Enumerator<TKey>(_bptree.Root, _bptree)
+            return new KeyValuePair_Enumerator<TKey, TValue>(_bptree.Root, _bptree, _value_Serializer);
         }
 
+
+        public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return new KeyValuePair_Enumerator<TKey, TValue>(_bptree.Root, _bptree, _value_Serializer);
+        }
+
+        public bool Remove(TKey key)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool Remove(KeyValuePair<TKey, TValue> item)
         {
             throw new NotImplementedException();
         }

@@ -60,12 +60,12 @@ namespace BPlusTree.Core
              {
                  node = _node_Factory.Create_New_One_Detached_Like_This(node);
              }
-             //var node = Read_Node(address);
+
 
              node.Is_Volatile = false;
              node.Parent = parent;
              node.Address = address;
-             parent.Children[key_Index] = node;
+             parent.Children[key_Index] = node;  // TODO it gets the index in memory with time.
              return node;
         }
 

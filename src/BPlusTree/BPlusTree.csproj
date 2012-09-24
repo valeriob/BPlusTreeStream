@@ -49,14 +49,15 @@
     <Compile Include="Core\BPTree.persistence.cs" />
     <Compile Include="Core\BPTree.Statistics.cs" />
     <Compile Include="Core\Cache_LRU.cs" />
-    <Compile Include="Core\Keys_Enumerator.cs" />
+    <Compile Include="Persistent_Dictionary\KeyValuePair_Enumerator.cs" />
+    <Compile Include="Persistent_Dictionary\Keys_Enumerator.cs" />
     <Compile Include="Core\Data.cs" />
     <Compile Include="Core\Exceptions\BpTreeException.cs" />
-    <Compile Include="Core\IData_Reader.cs" />
+    <Compile Include="Persistent_Dictionary\IData_Reader.cs" />
     <Compile Include="Core\Serializers\ISerializer.cs" />
     <Compile Include="Core\Serializers\IKey_Serializer.cs" />
     <Compile Include="Core\Serializers\Null_Serializer.cs" />
-    <Compile Include="Core\Values_Enumerator.cs" />
+    <Compile Include="Persistent_Dictionary\Values_Enumerator.cs" />
     <Compile Include="Core\Metadata.cs" />
     <Compile Include="Core\Node.cs" />
     <Compile Include="Core\Node_Factory.cs" />
@@ -73,7 +74,7 @@
     <Compile Include="Core\Unsafe_Utilities.cs" />
     <Compile Include="Data_Structures\Basic_Heap.cs" />
     <Compile Include="IBPTree.cs" />
-    <Compile Include="Persistent_Dictionary.cs" />
+    <Compile Include="Persistent_Dictionary\Persistent_Dictionary.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Stream_Factory.cs" />
     <Compile Include="String_BPTree.cs" />

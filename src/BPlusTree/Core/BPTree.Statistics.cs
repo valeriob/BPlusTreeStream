@@ -45,6 +45,14 @@ namespace BPlusTree.Core
             Index_Stream.Seek(block_Address, SeekOrigin.Begin);
             Index_Stream.Write(BitConverter.GetBytes(-1), 0, 4);
         }
+
+
+        int key_added;
+        public void Key_Added() { key_added++; }
+        int nodes_added;
+        public void Node_Added() { nodes_added++; }
+        int leaves_added;
+        public void Leave_Added() { leaves_added++; }
     }
 
     public class Usage

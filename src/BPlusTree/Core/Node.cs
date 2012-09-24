@@ -56,9 +56,12 @@ namespace BPlusTree.Core
             Children = new Node<T>[order + 1];
             Is_Volatile = true;
 
-            Data = new byte[order + 1, clustered_Data_Length + 12];
-           // Data = new Clustered_Data<T>[order + 1];
-            _clustered_Data_Length = clustered_Data_Length;
+            if (isClustered)
+            {
+                Data = new byte[order + 1, clustered_Data_Length + 12];
+                _clustered_Data_Length = clustered_Data_Length;
+            }
+            else Data = new byte[0, 0];
         }
 
         public void Insert_Key(T key, long address, Node<T> child)
@@ -182,13 +185,17 @@ namespace BPlusTree.Core
 
             var index = Array.BinarySearch(Keys, 0, Key_Num, key);
 
-            for (int i = 0; i < Keys.Length; i++)
-                if (Keys[i].Equals(key))
-                {
-                    Debug.Assert(index == i);
-                    return Pointers[i + 1];
-                }
-            throw new Key_Not_Found(key);//"Key " + key + " not found !");
+            if (index >= 0)
+                return Pointers[index];
+            else
+                throw new Key_Not_Found(key);
+            //for (int i = 0; i < Keys.Length; i++)
+            //    if (Keys[i].Equals(key))
+            //    {
+            //        Debug.Assert(index == i);
+            //        return Pointers[i + 1];
+            //    }
+            //throw new Key_Not_Found(key);//"Key " + key + " not found !");
         }
         public byte[] Get_Clustered_Data(T key)
         {

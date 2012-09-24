@@ -51,6 +51,22 @@ namespace BPlusTree.Test
                 Assert.AreEqual(dictionary[i], body + i);
         }
 
+        [TestMethod]
+        public void return_record_count()
+        {
+            var dictionary = new Persistent_Dictionary<int, string>(name);
+            dictionary.Clear();
+
+            string body = "new item with body ";
+            int count = 1000;
+            for (int i = 0; i < count; i++)
+                dictionary[i] = body + i;
+
+            var verify_count = dictionary.Count;
+
+            Assert.AreEqual(count, verify_count);
+        }
+
 
     }
 }
