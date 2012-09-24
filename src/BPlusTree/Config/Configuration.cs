@@ -14,7 +14,7 @@ namespace BPlusTree.Config
         public int BPTree_Order { get; set; }
         public int Alignment { get; set; }
         public int Clustering_Data_Length { get; set; }
-        public BPlusTree.Core.ISerializer<TKey> Key_Serializer { get; set; }
+        public BPlusTree.Core.IKey_Serializer<TKey> Key_Serializer { get; set; }
 
         public static Configuration<TKey> Default_For(string id)
         {
@@ -29,20 +29,20 @@ namespace BPlusTree.Config
         }
 
 
-        public static BPlusTree.Core.ISerializer<TKey> Best_Serializer()
+        public static BPlusTree.Core.IKey_Serializer<TKey> Best_Serializer()
         {
             Type tkey = typeof(TKey);
             if(tkey == typeof(int))
-                return (BPlusTree.Core.ISerializer<TKey>)new Int_Serializer();
+                return (BPlusTree.Core.IKey_Serializer<TKey>)new Int_Serializer();
 
             if (tkey == typeof(long))
-                return (BPlusTree.Core.ISerializer<TKey>)new Long_Serializer();
+                return (BPlusTree.Core.IKey_Serializer<TKey>)new Long_Serializer();
 
             if (tkey == typeof(Guid))
-                return (BPlusTree.Core.ISerializer<TKey>)new Guid_Serializer();
+                return (BPlusTree.Core.IKey_Serializer<TKey>)new Guid_Serializer();
 
             if (tkey == typeof(string))
-                return (BPlusTree.Core.ISerializer<TKey>)new String_Serializer();
+                return (BPlusTree.Core.IKey_Serializer<TKey>)new String_Serializer();
 
             throw new NotSupportedException("");
         }

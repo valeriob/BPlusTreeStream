@@ -5,9 +5,9 @@ using System.Text;
 
 namespace BPlusTree.Core.Serializers
 {
-    public class Int_Serializer : ISerializer<int>
+    public class Int_Serializer : IKey_Serializer<int>
     {
-        public byte[] GetBytes(int value)
+        public byte[] Get_Bytes(int value)
         {
             return BitConverter.GetBytes(value);
         }
@@ -45,11 +45,12 @@ namespace BPlusTree.Core.Serializers
             }
             return result;
         }
+
     }
 
-    public class Long_Serializer : ISerializer<long>
+    public class Long_Serializer : IKey_Serializer<long>
     {
-        public byte[] GetBytes(long value)
+        public byte[] Get_Bytes(long value)
         {
             return BitConverter.GetBytes(value);
         }
@@ -82,9 +83,9 @@ namespace BPlusTree.Core.Serializers
         }
     }
 
-    public class Guid_Serializer : ISerializer<Guid>
+    public class Guid_Serializer : IKey_Serializer<Guid>
     {
-        public byte[] GetBytes(Guid value)
+        public byte[] Get_Bytes(Guid value)
         {
             return value.ToByteArray();
         }

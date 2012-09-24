@@ -8,12 +8,6 @@ using System.Text;
 
 namespace BPlusTree.Config
 {
-    public interface ISerializer<T>
-    { 
-        byte[] Get_Bytes(T instance);
-        T Get_Instance(byte[] bytes);
-    }
-
     public class Default_Binary_Serializer<T> : ISerializer<T>
     {
         BinaryFormatter _formatter = new BinaryFormatter();
@@ -28,9 +22,9 @@ namespace BPlusTree.Config
             }
         }
 
-        public T Get_Instance(byte[] bytes)
+        public T Get_Instance(byte[] bytes, int startIndex)
         {
-            using (var buffer = new MemoryStream(bytes))
+            using (var buffer = new MemoryStream(bytes, startIndex, bytes.Length - startIndex))
             {
                 return (T)_formatter.Deserialize(buffer);
             }

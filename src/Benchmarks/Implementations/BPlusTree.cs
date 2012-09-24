@@ -13,7 +13,7 @@ namespace Benchmarks
     {
         String_BPlusTree<int> tree;
         Stream indexStream;
-        ISerializer<int> serializer = new Int_Serializer();
+        IKey_Serializer<int> serializer = new Int_Serializer();
         Random random = new Random(DateTime.Now.Millisecond);
 
         public BPlusTree()

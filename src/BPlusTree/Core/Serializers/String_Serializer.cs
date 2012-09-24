@@ -6,12 +6,12 @@ using System.Text;
 namespace BPlusTree.Core.Serializers
 {
 
-    public class String_Serializer : ISerializer<string>
+    public class String_Serializer : IKey_Serializer<string>
     {
         readonly Encoding Encoding = Encoding.UTF8;
 
 
-        public byte[] GetBytes(string value)
+        public byte[] Get_Bytes(string value)
         {
             var buffer = new byte[16];
             Encoding.GetBytes(value.PadRight(16), 0, Math.Min(value.Length, 16), buffer, 0);

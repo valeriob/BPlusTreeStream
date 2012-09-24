@@ -15,7 +15,7 @@ namespace Benchmarks
     public class BPlusTree_Azure : Benchmark
     {
         String_BPlusTree<int> tree;
-        ISerializer<int> serializer = new Int_Serializer();
+        IKey_Serializer<int> serializer = new Int_Serializer();
         Random random = new Random(DateTime.Now.Millisecond);
 
         public BPlusTree_Azure()

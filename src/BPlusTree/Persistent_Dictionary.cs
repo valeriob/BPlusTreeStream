@@ -1,11 +1,11 @@
 ﻿using BPlusTree.Config;
-//using BPlusTree.Core;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using BPlusTree.Core;
 
 namespace BPlusTree
 {
@@ -67,7 +67,7 @@ namespace BPlusTree
             try
             {
                 var data = _bptree.Get(key);
-                value = _value_Serializer.Get_Instance(data);
+                value = _value_Serializer.Get_Instance(data, 0);
                 return true;
             }
             catch (Exception)
@@ -79,8 +79,8 @@ namespace BPlusTree
         public ICollection<TValue> Values
         {
             get 
-            { 
-                throw new NotImplementedException(); 
+            {
+                return new List<TValue>(new BPlusTree.Core.Values_Enumerable<TKey,TValue>(_bptree.Root, _bptree, _value_Serializer));
             }
         }
 
@@ -89,7 +89,7 @@ namespace BPlusTree
             get
             {
                 var bytes = _bptree.Get(key);
-                return _value_Serializer.Get_Instance(bytes);
+                return _value_Serializer.Get_Instance(bytes, 0);
             }
             set
             {
@@ -120,7 +120,8 @@ namespace BPlusTree
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            throw new NotImplementedException();
+            var data = this[item.Key];
+            return data.Equals(item);
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)

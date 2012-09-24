@@ -12,28 +12,39 @@ namespace BPlusTree.Test
         [TestMethod]
         public void be_able_enumerate_all_values()
         {
-            var cfg = Config.Configuration<int>.Default_For(name);
-            cfg.BPTree_Order = 3;
-            cfg.Stream_Factory.Clear();
-            var tree = new Core.BPlusTree<int>(cfg);
+            var dictionary = new Persistent_Dictionary<int, int>(name);
+            dictionary.Clear();
 
-            for (int i = 0; i < 10; i++)
-                tree.Put(i, BitConverter.GetBytes(i));
+            int count = 10;
+            for (int i = 0; i < count; i++)
+                dictionary[i] = i;
 
-            tree.Commit();
-            var reader = tree as IData_Reader<int>;
+            var allValues = dictionary.Values;
 
-            var leaf = tree.Find_Leaf_Node(0);
+            Assert.AreEqual(allValues.Count, count);
+            for (int i = 0; i < count; i++)
+                Assert.IsTrue(allValues.Contains(i));
+        }
 
-            var enumerator = new Values_Enumerator<int>(tree.Root, reader);
+        [TestMethod]
+        public void be_able_enumerate_all_keys()
+        {
+            var dictionary = new Persistent_Dictionary<int, int>(name);
+            dictionary.Clear();
 
-            while (enumerator.MoveNext())
-            {
-                var data = enumerator.Current;
-                var id = BitConverter.ToInt32(data.Payload, 0);
-            }
+            int count = 10;
 
+            for (int i = 0; i < count; i++)
+                dictionary[i] = i;
+
+            var allKeys = dictionary.Keys;
+
+            Assert.AreEqual(allKeys.Count, count);
+
+            for (int i = 0; i < count; i++)
+                Assert.IsTrue(allKeys.Contains(i));
         }
 
     }
+
 }

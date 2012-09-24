@@ -94,9 +94,9 @@ namespace BPlusTree.Core
         int _buffer_Size;
 
         int _total_Persisted_Size;
-        ISerializer<T> _key_serializer;
+        IKey_Serializer<T> _key_serializer;
 
-        public Data_Serializer(ISerializer<T> serializer, int alignment, int read_ahead_blocks, int bufferSize)
+        public Data_Serializer(IKey_Serializer<T> serializer, int alignment, int read_ahead_blocks, int bufferSize)
         {
             _alignment = alignment;
             _read_ahead_blocks = read_ahead_blocks;
@@ -121,7 +121,7 @@ namespace BPlusTree.Core
             int size = Total_Persisted_Size(data);
 
             Array.Copy(BitConverter.GetBytes(size), 0, buffer, startIndex, 4);
-            Array.Copy(_key_serializer.GetBytes(data.Key), 0, buffer, startIndex + 4, _key_serializer.Serialized_Size_For_Single_Key_In_Bytes());
+            Array.Copy(_key_serializer.Get_Bytes(data.Key), 0, buffer, startIndex + 4, _key_serializer.Serialized_Size_For_Single_Key_In_Bytes());
             Array.Copy(BitConverter.GetBytes(data.Timestamp.Ticks), 0, buffer, startIndex + 8, 8);
             Array.Copy(BitConverter.GetBytes(data.Version), 0, buffer, startIndex + 16, 4);
             Array.Copy(BitConverter.GetBytes(data.Previous_Version_Address), 0, buffer, startIndex + 20, 8);
@@ -149,7 +149,7 @@ namespace BPlusTree.Core
             return From_Bytes(buffer, 4, _key_serializer);
         }
 
-        public Data<T> From_Bytes(byte[] buffer, int startIndex, ISerializer<T> serializer)
+        public Data<T> From_Bytes(byte[] buffer, int startIndex, IKey_Serializer<T> serializer)
         {
             var data = new Data<T>
             {

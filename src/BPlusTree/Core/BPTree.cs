@@ -28,7 +28,7 @@ namespace BPlusTree.Core
         public Dictionary<long, Node<T>> Cached_Nodes { get; set; }
 
         int _block_Size;
-        ISerializer<T> _key_Serializer;
+        IKey_Serializer<T> _key_Serializer;
         Node_Factory<T> _node_Factory;
         Cache_LRU<long, Node<T>> _cache;
         IStream_Factory _streamFactory;
@@ -61,7 +61,7 @@ namespace BPlusTree.Core
 
             Init();
         }
-        public BPlusTree(Stream metadataStream, Stream indexStream, Stream dataStream, int order, int alignment, int cluster_data_length, ISerializer<T> serializer)
+        public BPlusTree(Stream metadataStream, Stream indexStream, Stream dataStream, int order, int alignment, int cluster_data_length, IKey_Serializer<T> serializer)
         {
             Order = order;
             Alignment = alignment;

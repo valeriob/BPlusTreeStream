@@ -9,7 +9,7 @@ namespace BPlusTree.Core
 {
     public class Node_Factory<T> where T : IComparable<T>, IEquatable<T> // TODO DISPOSE TASK
     {
-        public ISerializer<T> Serializer { get; protected set; }
+        public IKey_Serializer<T> Serializer { get; protected set; }
         Task builder;
         int Order;
         bool IsClustered;
@@ -18,7 +18,7 @@ namespace BPlusTree.Core
         public int Alignment { get; protected set; }
         ManualResetEvent _lock = new ManualResetEvent(true);
 
-        public Node_Factory(ISerializer<T> serializer, int order, int alignment, int clusteredDataSize)
+        public Node_Factory(IKey_Serializer<T> serializer, int order, int alignment, int clusteredDataSize)
         {
             Serializer = serializer;
             Order = order;
@@ -182,7 +182,7 @@ namespace BPlusTree.Core
 
             int offset = startIndex + 5;
             for (int i = 0; i < key_Num; i++)
-                Array.Copy(Serializer.GetBytes(node.Keys[i]), 0, buffer, offset + keySize * i, keySize);
+                Array.Copy(Serializer.Get_Bytes(node.Keys[i]), 0, buffer, offset + keySize * i, keySize);
 
             offset = startIndex + 5 + keySize * node.Keys.Length;
             for (int i = 0; i < key_Num + 1; i++)
