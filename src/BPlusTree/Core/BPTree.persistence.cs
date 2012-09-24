@@ -45,7 +45,7 @@ namespace BPlusTree.Core
             return node;
         }
 
-        public Node<T> Read_Node_From_Pointer(Node<T> parent, int key_Index)
+        public Node<T> Read_Node_From_Parent_Pointer(Node<T> parent, int key_Index)
         {
              long address = parent.Pointers[key_Index];
              

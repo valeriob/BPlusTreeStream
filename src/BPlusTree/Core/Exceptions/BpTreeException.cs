@@ -7,6 +7,8 @@ namespace BPlusTree.Core
 {
     public class BpTreeException : Exception
     {
+        public BpTreeException() { }
+        public BpTreeException(string message) : base(message) { }
     }
 
     public class Key_Not_Found : BpTreeException

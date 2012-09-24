@@ -17,6 +17,11 @@ namespace BPlusTree.Core
         public int Clustered_Data_Length { get; set; }
         public int Alignment { get; set; }
 
+        // STATS
+        public int Number_Of_Keys { get; set; }
+        public int Number_Of_Leafes { get; set; }
+        public int Number_Of_Nodes { get; set; }
+
         public void To_Bytes_In_Buffer(byte[] buffer, int startIndex)
         {
             Array.Copy(BitConverter.GetBytes(Order), 0, buffer, startIndex, 4);

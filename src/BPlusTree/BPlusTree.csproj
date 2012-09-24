@@ -47,11 +47,12 @@
     <Compile Include="Core\BPTree.persistence.cs" />
     <Compile Include="Core\BPTree.Statistics.cs" />
     <Compile Include="Core\Cache_LRU.cs" />
+    <Compile Include="Core\Keys_Enumerator.cs" />
     <Compile Include="Core\Data.cs" />
     <Compile Include="Core\Exceptions\BpTreeException.cs" />
     <Compile Include="Core\IData_Reader.cs" />
     <Compile Include="Core\ISerializable.cs" />
-    <Compile Include="Core\Leafs_Enumerator.cs" />
+    <Compile Include="Core\Values_Enumerator.cs" />
     <Compile Include="Core\Metadata.cs" />
     <Compile Include="Core\Node.cs" />
     <Compile Include="Core\Node_Factory.cs" />

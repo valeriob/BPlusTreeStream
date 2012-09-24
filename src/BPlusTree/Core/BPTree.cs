@@ -346,7 +346,7 @@ namespace BPlusTree.Core
                 if (root.Children[i] != null)
                     root = root.Children[i];
                 else
-                    root = Read_Node_From_Pointer(root, i);
+                    root = Read_Node_From_Parent_Pointer(root, i);
 
                 if (!root.IsValid)
                     throw new Exception("An Invalid node was read");

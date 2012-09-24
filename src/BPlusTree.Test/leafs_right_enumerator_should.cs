@@ -24,13 +24,16 @@ namespace BPlusTree.Test
             var reader = tree as IData_Reader<int>;
 
             var leaf = tree.Find_Leaf_Node(0);
-            var enumerator = new Leafs_Right_Enumerator<int>(leaf, 0, reader);
+
+            var enumerator = new Values_Enumerator<int>(tree.Root, reader);
 
             while (enumerator.MoveNext())
             {
                 var data = enumerator.Current;
                 var id = BitConverter.ToInt32(data.Payload, 0);
             }
+
         }
+
     }
 }

@@ -5,20 +5,19 @@ using System.Text;
 
 namespace BPlusTree.Core
 {
-    public class Leafs_Right_Enumerator<T> : IEnumerator<Data<T>> where T : IComparable<T>, IEquatable<T>
+    public class Values_Enumerator<T> : IEnumerator<Data<T>> where T : IComparable<T>, IEquatable<T>
     {
         IData_Reader<T> _reader;
         T _current_Key;
         Node<T> _current_Node;
+        Node<T> _root;
 
-        public Leafs_Right_Enumerator(Node<T> leaf, T key, IData_Reader<T> reader)
+        public Values_Enumerator(Node<T> root, IData_Reader<T> reader)
         {
-            if (!leaf.IsLeaf)
-                throw new Exception("not a leaf");
-
             _reader = reader;
-            _current_Key = key;
-            _current_Node = leaf;
+            _root = root;
+
+            Find_First_Key();
         }
 
 
@@ -26,7 +25,7 @@ namespace BPlusTree.Core
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            
         }
 
         object System.Collections.IEnumerator.Current
@@ -83,7 +82,43 @@ namespace BPlusTree.Core
    
         public void Reset()
         {
-            throw new NotImplementedException();
+            Find_First_Key();
+            Current = null;
+        }
+
+        protected void Find_First_Key()
+        {
+            var node = _root;
+
+            while (!node.IsLeaf)
+                node = _reader.Read_Node_From_Parent_Pointer(node, 0);
+
+            _current_Node = node;
+            _current_Key = node.Keys[0];
+        }
+
+    }
+
+
+    public class Values_Enumerable<T> : IEnumerable<T> where T : IComparable<T>, IEquatable<T>
+    {
+        IData_Reader<T> _reader;
+        Node<T> _root;
+
+        public Values_Enumerable(Node<T> root, IData_Reader<T> reader)
+        {
+            _reader = reader;
+            _root = root;
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return new Keys_Enumerator<T>(_root, _reader);
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return new Keys_Enumerator<T>(_root, _reader);
         }
     }
 }

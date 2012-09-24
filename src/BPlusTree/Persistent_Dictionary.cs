@@ -11,7 +11,7 @@ namespace BPlusTree
 {
     public class Persistent_Dictionary<TKey, TValue> : IDictionary<TKey, TValue> where TKey : IComparable<TKey>, IEquatable<TKey>
     {
-        IBPlusTree<TKey> _bptree;
+        BPlusTree.Core.BPlusTree<TKey> _bptree;
         Configuration<TKey> _config;
         ISerializer<TValue> _value_Serializer;
 
@@ -51,8 +51,10 @@ namespace BPlusTree
 
         public ICollection<TKey> Keys
         {
-            // TODO enumerate keys
-            get { throw new NotImplementedException(); }
+            get 
+            {
+                return new List<TKey>(new BPlusTree.Core.Keys_Enumerable<TKey>(_bptree.Root, _bptree));
+            }
         }
 
         public bool Remove(TKey key)
@@ -62,7 +64,16 @@ namespace BPlusTree
 
         public bool TryGetValue(TKey key, out TValue value)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var data = _bptree.Get(key);
+                value = _value_Serializer.Get_Instance(data);
+                return true;
+            }
+            catch (Exception)
+            { }
+            value = default(TValue);
+            return false;
         }
 
         public ICollection<TValue> Values
@@ -136,11 +147,14 @@ namespace BPlusTree
         {
             throw new NotImplementedException();
             //return new Leafs_Right_Enumerator<TKey>(leaf, key, _bptree);
+            //return new BPlusTree.Core.Values_Enumerator<TKey>(_bptree.Root, _bptree)
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             throw new NotImplementedException();
         }
+
     }
+
 }

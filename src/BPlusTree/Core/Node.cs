@@ -177,6 +177,9 @@ namespace BPlusTree.Core
         }
         public long Get_Data_Address(T key)
         {
+            if (!IsLeaf)
+                throw new BpTreeException("Cannot retrieve data address from middle node.");
+
             var index = Array.BinarySearch(Keys, 0, Key_Num, key);
 
             for (int i = 0; i < Keys.Length; i++)
