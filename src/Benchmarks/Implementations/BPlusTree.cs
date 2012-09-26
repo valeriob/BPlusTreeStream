@@ -37,7 +37,7 @@ namespace Benchmarks
             var metadataStream = new FileStream(metadataFile, FileMode.OpenOrCreate);
             indexStream = new FileStream(indexFile, FileMode.OpenOrCreate);
             //indexStream = new FileStream(indexFile, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None, 4096,
-            //    FileOptions.WriteThrough | FileOptions.RandomAccess   );
+            //    FileOptions.WriteThrough | FileOptions.RandomAccess);
 
             //var mmf = MemoryMappedFile.CreateFromFile(indexFile, FileMode.Open, "index", 0, MemoryMappedFileAccess.ReadWrite);
             //indexStream = mmf.CreateViewStream();
@@ -45,7 +45,7 @@ namespace Benchmarks
             var dataStream = new FileStream(dataFile, FileMode.OpenOrCreate);
 
             var appendBpTree = new BPlusTree<int>(metadataStream, indexStream, 
-                dataStream, 256, 0, 0, serializer);
+                dataStream, 512, 0, 0, serializer);
             tree = new String_BPlusTree<int>(appendBpTree);
             
         }
@@ -129,9 +129,10 @@ namespace Benchmarks
 
 
             ///  Read Only
+            
             for (int i = 0; i < number_Of_Inserts; i++)
             {
-                var index = random.Next(number_Of_Inserts - 1);
+                var index = random.Next(761713000 - 1);
                 result = tree.Get(index);
             }
 

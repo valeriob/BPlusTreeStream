@@ -35,6 +35,7 @@ namespace BPlusTree.Core
         public Metadata _metadata { get; protected set; }
         Data_Serializer<T> _data_Serializer;
 
+
         public BPlusTree(Configuration<T> cfg)
         {
             Order = cfg.BPTree_Order;
@@ -197,7 +198,7 @@ namespace BPlusTree.Core
 
         public void Put(T key, byte[] value)
         {
-            var leaf = Find_Leaf_Node(key);
+            var leaf = Find_Leaf_Node(key, true);
 
             int index = Array.BinarySearch(leaf.Keys,0, leaf.Key_Num, key);
             if (index > 0)
@@ -328,18 +329,18 @@ namespace BPlusTree.Core
             return newNode;
         }
 
-        public Node<T> Find_Leaf_Node(T key)
+        public Node<T> Find_Leaf_Node(T key, bool forUpdate = false)
         {
             var node = Root;
             if(_pending_Changes.Has_Pending_Changes())
                 node = _pending_Changes.Get_Uncommitted_Root();
 
-            return Find_Leaf_Node(key, node);
+            return Find_Leaf_Node(key, node, forUpdate);
         }
 
-        
 
-        public Node<T> Find_Leaf_Node(T key, Node<T> root)
+
+        public Node<T> Find_Leaf_Node(T key, Node<T> root, bool forUpdate = false)
         {
             int depth = 0;
             while (!root.IsLeaf)
@@ -356,7 +357,7 @@ namespace BPlusTree.Core
                 if (root.Children[i] != null)
                     root = root.Children[i];
                 else
-                    root = Read_Node_From_Parent_Pointer(root, i);
+                    root = Read_Node_From_Parent_Pointer(root, i, forUpdate);
 
                 if (!root.IsValid)
                     throw new Exception("An Invalid node was read");

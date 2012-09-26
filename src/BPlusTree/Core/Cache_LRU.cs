@@ -10,7 +10,6 @@ namespace BPlusTree.Core
 {
     public class Cache_LRU<TKey, TValue>
     {
-        //Func<TKey, TValue> _fetch;
         Dictionary<TKey, Cache_Line<TKey, TValue>> _store;
         int Max_Size;
         int Batch;
@@ -20,10 +19,8 @@ namespace BPlusTree.Core
         public int Hits { get; protected set; }
         public int Misses { get; protected set; }
 
-        //public Cache_LRU(Func<TKey, TValue> fetchValue)
         public Cache_LRU()
         {
-        //    _fetch = fetchValue;
             _store = new Dictionary<TKey, Cache_Line<TKey, TValue>>();
             Max_Size = 1024;
             Batch = 50;
@@ -44,10 +41,6 @@ namespace BPlusTree.Core
             else
             {
                 Misses++;
-                //var value = _fetch(key);
-                //_store[key] = new Cache_Line<TKey, TValue> { Added = DateTime.Now, Key = key, Value = value, Last_Used = DateTime.Now, Used_Count = 1 };
-                //Evict_If_Necessary();
-                //return value;
             }
 
             return default(TValue);
