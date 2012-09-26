@@ -57,7 +57,7 @@ namespace BPlusTree.Core
             Metadata_Stream = _streamFactory.Create_ReadWrite_Metadata_Stream();
 
             Cached_Nodes = new Dictionary<long, Node<T>>();
-            _cache = new Cache_LRU<long, Node<T>>();
+            _cache = new Cache_LRU<long, Node<T>>(()=> this.Current_Time);
             _metadata = new Metadata { Order = Order };
 
             Init();
@@ -82,7 +82,7 @@ namespace BPlusTree.Core
             Metadata_Stream = metadataStream;
 
             Cached_Nodes = new Dictionary<long, Node<T>>();
-            _cache = new Cache_LRU<long, Node<T>>();
+            _cache = new Cache_LRU<long, Node<T>>(() => this.Current_Time);
             _metadata = new Metadata { Order = Order };
 
             Init();
@@ -110,6 +110,7 @@ namespace BPlusTree.Core
             _metadata.Number_Of_Keys += key_added;
             _metadata.Number_Of_Leaves += leaves_added;
             _metadata.Number_Of_Nodes += nodes_added;
+            _metadata.Height = 0;
 
             _metadata.To_Bytes_In_Buffer(buffer, 0);
             Metadata_Stream.Write(buffer, 0, buffer.Length);
@@ -221,6 +222,31 @@ namespace BPlusTree.Core
                 Array.Copy(value, 0, data, 12, value.Length);
                 leaf.Insert_Clustered_Data(data, key);
             }
+
+            _pending_Changes.Append_New_Root(newRoot);
+            Key_Added();
+        }
+
+        public void Set_Data(T key, Data<T> data)
+        {
+            var leaf = Find_Leaf_Node(key, true);
+
+            int index = Array.BinarySearch(leaf.Keys, 0, leaf.Key_Num, key);
+            if (index > 0)
+                return;
+
+            Node<T> newRoot = null;
+
+            if (!IsClustered())
+            {
+                var data_Address = _pending_Changes.Get_Current_Data_Pointer();
+                data.Address = data_Address;
+                _pending_Changes.Append_Data(data);
+
+                newRoot = Insert_in_node(leaf, key, data_Address);
+            }
+            else
+                throw new NotSupportedException("");
 
             _pending_Changes.Append_New_Root(newRoot);
             Key_Added();
@@ -357,8 +383,12 @@ namespace BPlusTree.Core
                 if (root.Children[i] != null)
                     root = root.Children[i];
                 else
-                    root = Read_Node_From_Parent_Pointer(root, i, forUpdate);
-
+                {
+                    if (forUpdate)
+                        root = Read_Node_From_Parent_Pointer_For_Update(root, i);
+                    else
+                        root = Read_Node_From_Parent_Pointer(root, i);
+                }
                 if (!root.IsValid)
                     throw new Exception("An Invalid node was read");
                 depth++;

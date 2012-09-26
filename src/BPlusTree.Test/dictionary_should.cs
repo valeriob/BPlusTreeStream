@@ -26,6 +26,22 @@ namespace BPlusTree.Test
         }
 
         [TestMethod]
+        public void persist_two_insered_Value()
+        {
+            var dictionary = new Persistent_Dictionary<int, string>(name);
+            dictionary.Clear();
+
+            dictionary[1] = "ciao 1";
+            dictionary[2] = "ciao 2";
+
+            var ciao_1 = dictionary[1];
+            var ciao_2 = dictionary[2];
+
+            Assert.AreEqual("ciao 1", ciao_1);
+            Assert.AreEqual("ciao 2", ciao_2);
+        }
+
+        [TestMethod]
         [ExpectedExceptionAttribute(typeof(Key_Not_Found))]
         public void remove_inserd_value_when_cleaning()
         {

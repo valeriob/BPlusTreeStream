@@ -210,7 +210,8 @@ namespace BPlusTree.Core
             Array.Copy(source.Keys, node.Keys, source.Keys.Length);
             Array.Copy(source.Pointers, node.Pointers, source.Pointers.Length);
             Array.Copy(source.Versions, node.Versions, source.Versions.Length);
-            Array.Copy(source.Data, node.Data, source.Data.Length);
+            if(IsClustered)
+                Array.Copy(source.Data, node.Data, source.Data.Length);
             node.Address = source.Address;
             return node;
         }

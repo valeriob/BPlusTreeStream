@@ -49,6 +49,7 @@
     <Compile Include="Core\BPTree.persistence.cs" />
     <Compile Include="Core\BPTree.Statistics.cs" />
     <Compile Include="Core\Cache_LRU.cs" />
+    <Compile Include="Persistent_Dictionary\KeyData_Enumerator.cs" />
     <Compile Include="Persistent_Dictionary\KeyValuePair_Enumerator.cs" />
     <Compile Include="Persistent_Dictionary\Keys_Enumerator.cs" />
     <Compile Include="Core\Data.cs" />
@@ -84,6 +85,7 @@
     <Compile Include="Data_Structures\IBinarySearchTree.cs" />
     <Compile Include="Data_Structures\IStack.cs" />
     <Compile Include="Data_Structures\Stack.cs" />
+    <Compile Include="Utility.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

@@ -45,28 +45,32 @@ namespace BPlusTree.Core
             return node;
         }
 
-        public Node<T> Read_Node_From_Parent_Pointer(Node<T> parent, int key_Index, bool forUpdate = false)
+        public Node<T> Read_Node_From_Parent_Pointer_For_Update(Node<T> parent, int key_Index)
+        {
+            long address = parent.Pointers[key_Index];
+            var node = Read_Node(address);
+            node.Is_Volatile = false;
+            node.Parent = parent;
+            node.Address = address;
+            parent.Children[key_Index] = node;  
+            return node;
+        }
+
+        public Node<T> Read_Node_From_Parent_Pointer(Node<T> parent, int key_Index)
         {
             long address = parent.Pointers[key_Index];
 
             var node = _cache.Get(address);
-            //var node = Read_Node(address);
             if (node == null)
             {
                 node = Read_Node(address);
-                _cache.Put(address, node);
-            }
-            else
-            {
-                node = _node_Factory.Create_New_One_Detached_Like_This(node);
+                node.Is_Volatile = false;
+                node.Parent = parent;
+                node.Address = address;
+
+                _cache.Set(address, node);
             }
 
-
-            node.Is_Volatile = false;
-            node.Parent = parent;
-            node.Address = address;
-            if (forUpdate)
-                parent.Children[key_Index] = node;  // TODO it gets the index in memory with time.
             return node;
         }
 
@@ -79,7 +83,6 @@ namespace BPlusTree.Core
 
             return _node_Factory.From_Bytes(buffer, Order);
         }
-
 
 
         protected void Write_Data(byte[] value, T key, int version, long address)

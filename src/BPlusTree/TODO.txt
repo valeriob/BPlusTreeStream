@@ -13,7 +13,6 @@ Dequeue => Write async in block (and clean reserved empty slot)
 
 	Performances : 
 		- Cache LRU for reading nodes
-		- Read_Node_From_Parent_Pointer Node<T>.Children, find a different solution, it gets the whole index in memory on readonly scenarios
 
 		- SODA, ASYNC batched commit
 

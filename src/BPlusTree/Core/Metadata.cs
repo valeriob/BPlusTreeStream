@@ -21,6 +21,7 @@ namespace BPlusTree.Core
         public int Number_Of_Keys { get; set; }
         public int Number_Of_Leaves { get; set; }
         public int Number_Of_Nodes { get; set; }
+        public int Height { get; set; }
 
         public void To_Bytes_In_Buffer(byte[] buffer, int startIndex)
         {
@@ -36,6 +37,7 @@ namespace BPlusTree.Core
             Array.Copy(BitConverter.GetBytes(Number_Of_Keys), 0, buffer, startIndex + 36, 4);
             Array.Copy(BitConverter.GetBytes(Number_Of_Leaves), 0, buffer, startIndex + 40, 4);
             Array.Copy(BitConverter.GetBytes(Number_Of_Nodes), 0, buffer, startIndex + 44, 4);
+            Array.Copy(BitConverter.GetBytes(Height), 0, buffer, startIndex + 48, 4);
         }
 
         public static Metadata From_Bytes(byte[] buffer)
@@ -53,6 +55,7 @@ namespace BPlusTree.Core
                 Number_Of_Keys = BitConverter.ToInt32(buffer, 36),
                 Number_Of_Leaves = BitConverter.ToInt32(buffer, 40),
                 Number_Of_Nodes = BitConverter.ToInt32(buffer, 44),
+                Height = BitConverter.ToInt32(buffer, 48),
             };
         }
 

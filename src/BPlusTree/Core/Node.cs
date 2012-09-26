@@ -82,7 +82,6 @@ namespace BPlusTree.Core
                 Children[i] = Children[i - 1];
                 if (IsLeaf)
                 {
-                   // Data[i] = Data[i - 1];
                     for (int j = 0; j < _clustered_Data_Length; j++)
                         Data[i, j] = Data[i - 1, j];
                 }
@@ -135,7 +134,6 @@ namespace BPlusTree.Core
                     node_Right.Children[i] = node_Left.Children[i + (size / 2 + 1)];
                 else
                 {
-                    //node_Right.Data[i] = node_Left.Data[i + (size / 2 + 1)];
                     for (int j = 0; j < _clustered_Data_Length; j++)
                         node_Right.Data[i, j] = node_Left.Data[i + (size / 2 + 1), j];
                 }
@@ -146,7 +144,6 @@ namespace BPlusTree.Core
             node_Right.Pointers[node_Right.Key_Num] = node_Left.Pointers[size];
             node_Right.Children[node_Right.Key_Num] = node_Left.Children[size];
 
-            //node_Right.Data[node_Right.Key_Num] = node_Left.Data[size];
             
             for (int j = 0; j < _clustered_Data_Length; j++)
                 node_Right.Data[node_Right.Key_Num, j] = node_Left.Data[size, j];
@@ -186,16 +183,9 @@ namespace BPlusTree.Core
             var index = Array.BinarySearch(Keys, 0, Key_Num, key);
 
             if (index >= 0)
-                return Pointers[index];
+                return Pointers[index + 1];
             else
                 throw new Key_Not_Found(key);
-            //for (int i = 0; i < Keys.Length; i++)
-            //    if (Keys[i].Equals(key))
-            //    {
-            //        Debug.Assert(index == i);
-            //        return Pointers[i + 1];
-            //    }
-            //throw new Key_Not_Found(key);//"Key " + key + " not found !");
         }
         public byte[] Get_Clustered_Data(T key)
         {
@@ -203,7 +193,6 @@ namespace BPlusTree.Core
             var data = new byte[_clustered_Data_Length];
             for (int i = 0; i < data.Length; i++)
                 data[i] = Data[index + 1, i + 12];
-            //return Data[index + 1];
             return data;
 
         }

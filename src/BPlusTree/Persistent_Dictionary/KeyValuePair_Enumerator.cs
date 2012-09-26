@@ -45,9 +45,16 @@ namespace BPlusTree.Core
 
             if (!_Current_Has_Value)
             {
-                dataAddress = node.Get_Data_Address(key);
-                data = _reader.Read_Data(dataAddress);
-                Current = new KeyValuePair<TKey, TValue>(key, _data_serializer.Get_Instance(data.Payload, 0));
+                if (node.IsClustered)
+                {
+                    Current = new KeyValuePair<TKey, TValue>(key, _data_serializer.Get_Instance(node.Get_Clustered_Data(key), 0));
+                }
+                else
+                {
+                    dataAddress = node.Get_Data_Address(key);
+                    data = _reader.Read_Data(dataAddress);
+                    Current = new KeyValuePair<TKey, TValue>(key, _data_serializer.Get_Instance(data.Payload, 0));
+                }
                 return _Current_Has_Value = true;
             }
 
@@ -82,9 +89,16 @@ namespace BPlusTree.Core
             _current_Node = node;
             _current_Key = key;
 
-            dataAddress = node.Get_Data_Address(key);
-            data = _reader.Read_Data(dataAddress);
-            Current = new KeyValuePair<TKey, TValue>(key, _data_serializer.Get_Instance(data.Payload, 0));
+            if (node.IsClustered)
+            {
+                Current = new KeyValuePair<TKey, TValue>(key, _data_serializer.Get_Instance(node.Get_Clustered_Data(key), 0));
+            }
+            else
+            {
+                dataAddress = node.Get_Data_Address(key);
+                data = _reader.Read_Data(dataAddress);
+                Current = new KeyValuePair<TKey, TValue>(key, _data_serializer.Get_Instance(data.Payload, 0));
+            }
             return _Current_Has_Value = true;
         }
 

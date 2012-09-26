@@ -5,26 +5,25 @@ using System.Text;
 
 namespace BPlusTree.Core
 {
-    public class Values_Enumerator<TKey,TValue> : IEnumerator<TValue> where TKey : IComparable<TKey>, IEquatable<TKey>
+    public class KeyData_Enumerator<TKey> : IEnumerator<Data<TKey>> where TKey : IComparable<TKey>, IEquatable<TKey>
     {
         IData_Reader<TKey> _reader;
         TKey _current_Key;
         Node<TKey> _current_Node;
         Node<TKey> _root;
-        ISerializer<TValue> _data_serializer;
+
         bool _Current_Has_Value;
 
-        public Values_Enumerator(Node<TKey> root, IData_Reader<TKey> reader, ISerializer<TValue> serializer)
+        public KeyData_Enumerator(Node<TKey> root, IData_Reader<TKey> reader)
         {
             _reader = reader;
             _root = root;
-            _data_serializer = serializer;
 
             Find_First_Key();
         }
 
 
-        public TValue Current { get; protected set; }
+        public Data<TKey> Current { get; protected set; }
 
         public void Dispose()
         {
@@ -45,16 +44,8 @@ namespace BPlusTree.Core
 
             if (!_Current_Has_Value)
             {
-                if (node.IsClustered)
-                {
-                    Current = _data_serializer.Get_Instance(node.Get_Clustered_Data(key), 0);
-                }
-                else
-                {
-                    dataAddress = node.Get_Data_Address(key);
-                    data = _reader.Read_Data(dataAddress);
-                    Current = _data_serializer.Get_Instance(data.Payload, 0);
-                }
+                dataAddress = node.Get_Data_Address(key);
+                Current = data = _reader.Read_Data(dataAddress);                
                 return _Current_Has_Value = true;
             }
 
@@ -69,7 +60,7 @@ namespace BPlusTree.Core
                 {
                     if (node.Parent == null)
                     {
-                        Current = default(TValue);
+                        Current = null;
                         return _Current_Has_Value = false;
                     }
 
@@ -89,21 +80,8 @@ namespace BPlusTree.Core
             _current_Node = node;
             _current_Key = key;
 
-
-            if (node.IsClustered)
-            {
-                Current = _data_serializer.Get_Instance(node.Get_Clustered_Data(key), 0);
-            }
-            else
-            {
-                dataAddress = node.Get_Data_Address(key);
-                data = _reader.Read_Data(dataAddress);
-                Current = _data_serializer.Get_Instance(data.Payload, 0);
-            }
-
-            //dataAddress = node.Get_Data_Address(key);
-            //data = _reader.Read_Data(dataAddress);
-            //Current = _data_serializer.Get_Instance(data.Payload, 0);
+            dataAddress = node.Get_Data_Address(key);
+            Current = data = _reader.Read_Data(dataAddress);
             return _Current_Has_Value = true;
         }
 
@@ -111,7 +89,7 @@ namespace BPlusTree.Core
         public void Reset()
         {
             Find_First_Key();
-            Current = default(TValue);
+            Current = null;
             _Current_Has_Value = false;
         }
 
@@ -129,27 +107,25 @@ namespace BPlusTree.Core
     }
 
 
-    public class Values_Enumerable<TKey, TValue> : IEnumerable<TValue> where TKey : IComparable<TKey>, IEquatable<TKey>
+    public class KeyData_Enumerable<TKey> : IEnumerable<Data<TKey>> where TKey : IComparable<TKey>, IEquatable<TKey>
     {
         IData_Reader<TKey> _reader;
         Node<TKey> _root;
-        ISerializer<TValue> _data_serializer;
 
-        public Values_Enumerable(Node<TKey> root, IData_Reader<TKey> reader, ISerializer<TValue> serializer)
+        public KeyData_Enumerable(Node<TKey> root, IData_Reader<TKey> reader)
         {
             _reader = reader;
             _root = root;
-            _data_serializer = serializer;
         }
 
-        public IEnumerator<TValue> GetEnumerator()
+        public IEnumerator<Data<TKey>> GetEnumerator()
         {
-            return new Values_Enumerator<TKey, TValue>(_root, _reader, _data_serializer);
+            return new KeyData_Enumerator<TKey>(_root, _reader);
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return new Values_Enumerator<TKey, TValue>(_root, _reader, _data_serializer);
+            return new KeyData_Enumerator<TKey>(_root, _reader);
         }
     }
 }
