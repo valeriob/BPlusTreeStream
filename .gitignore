@@ -13,3 +13,4 @@ packages/
 *.psess
 _NCrunch_MessageMonitor*/
 *.ncrunchproject
+*.suo

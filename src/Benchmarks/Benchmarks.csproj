@@ -84,6 +84,8 @@
   <ItemGroup>
     <Compile Include="Benchmark.cs" />
     <Compile Include="Implementations\BPlusTree.cs" />
+    <Compile Include="Implementations\BPlusTree_WriteOnly.cs" />
+    <Compile Include="Implementations\BPlusTree_ReadOnly.cs" />
     <Compile Include="Implementations\BPlusTree_Azure.cs" />
     <Compile Include="Implementations\CSharpTest_BPlusTree.cs" />
     <Compile Include="Implementations\Esent.cs" />

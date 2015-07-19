@@ -18,14 +18,14 @@ namespace BPlusTree.Core
             _operations = new ConcurrentQueue<Operation<TKey>>();
         }
 
-        public Task PutAsync(TKey key, byte[] value)
-        {
-            var result = new Task();
-            var operation = new Operation<TKey> { Task =  result};
-            _operations.Enqueue(operation);
+        //public Task PutAsync(TKey key, byte[] value)
+        //{
+        //    var result = new Task();
+        //    var operation = new Operation<TKey> { Task =  result};
+        //    _operations.Enqueue(operation);
 
-            return result;
-        }
+        //    return result;
+        //}
     }
 
     public class Operation<TKey>  where TKey : IComparable<TKey>, IEquatable<TKey>

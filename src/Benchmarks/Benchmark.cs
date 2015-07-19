@@ -5,13 +5,18 @@ using System.Text;
 
 namespace Benchmarks
 {
-    public abstract class Benchmark
+    public abstract class Benchmark : IDisposable
     {
 
         public abstract void Run(int count, int batch);
 
-        public virtual void Prepare(int count, int batch) { }        
+        public virtual void Prepare(int count, int batch) { }
 
+
+        public virtual void Dispose()
+        {
+            
+        }
     }
 
     public class Result
